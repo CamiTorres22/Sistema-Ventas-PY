@@ -190,14 +190,3 @@ python scripts/run_daily_batch.py --force-clean
 | HitRate@10 | % usuarios donde el ítem test está en Top-10 | > 0.50 |
 | Tasa de conversión | % pedidos con ≥1 ítem recomendado | > 0.20 |
 | Rotation Coverage | % productos baja rotación recomendados | > 0.40 |
-
----
-
-## Sprints
-
-| Sprint | HU principales |
-|---|---|
-| **Sprint 1 (MVP)** | HU001 Catálogo · HU005 Selección cliente · HU007/008 Carrito · HU009/010 Recomendaciones · HU020 Resumen · HU024 Stock automático |
-| Sprint 2 | Login/Logout · Nuevos productos · Admin CRUD |
-| Sprint 3 | Búsqueda · Historial · Validación modelo · Dashboards |
-| Sprint 4 | Optimización · Disponibilidad · Reportes |
