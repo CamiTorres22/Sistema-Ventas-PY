@@ -9,13 +9,16 @@ import type { Producto } from "@/lib/types";
 
 const categorias = [
   "Todas",
-  "Aceites",
+  "Abarrotes",
   "Bebidas",
-  "Conservas",
-  "Granos y Cereales",
+  "Carnes",
+  "Congelados",
+  "Frutas",
   "Lácteos",
   "Limpieza",
+  "Panadería",
   "Snacks",
+  "Verduras",
 ];
 
 function formatCurrency(n: number) {

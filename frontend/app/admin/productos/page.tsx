@@ -9,7 +9,7 @@ function formatCurrency(n: number) {
   return new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(n);
 }
 
-const CATEGORIAS = ["Todas", "Aceites", "Bebidas", "Carnes", "Cereales", "Conservas", "Lácteos", "Limpieza", "Snacks", "Otros"];
+const CATEGORIAS = ["Todas", "Abarrotes", "Bebidas", "Carnes", "Congelados", "Frutas", "Lácteos", "Limpieza", "Panadería", "Snacks", "Verduras"];
 
 type Tab = "lista" | "agregar" | "editar";
 
