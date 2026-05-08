@@ -241,12 +241,32 @@ def run_batch(db_path: Path = DB_PATH) -> None:
         # Aplicar filtros duros
         score_final[excluir_mask] = 0.0
 
-        # Top-K por score_final (solo ítems con score > 0)
-        top_indices = np.argsort(score_final)[::-1][:TOP_K]
+        # Top-K general
+        top_general = np.argsort(score_final)[::-1][:TOP_K]
+        rank_map = {int(j): rank for rank, j in enumerate(top_general, start=1)}
 
-        for rank, j in enumerate(top_indices, start=1):
+        # Top-K por categoría (garantiza resultados en cada sección del dashboard)
+        def _top_k_cat(mask: np.ndarray) -> set:
+            idx = np.where(mask & (score_final > 0))[0]
+            if len(idx) == 0:
+                return set()
+            order = np.argsort(score_final[idx])[::-1][:TOP_K]
+            return set(idx[order].tolist())
+
+        top_baja_rot = _top_k_cat(baja_rot_vec == 1)
+        top_urgentes = _top_k_cat(
+            (dias_vencer_vec <= UMBRAL_URGENCIA) & (dias_vencer_vec >= 0)
+        )
+        top_nuevos   = _top_k_cat(dias_catalogo_vec <= UMBRAL_NOVEDAD)
+
+        all_indices = sorted(
+            set(top_general.tolist()) | top_baja_rot | top_urgentes | top_nuevos
+        )
+
+        for j in all_indices:
             if score_final[j] <= 0:
-                break
+                continue
+            rank = rank_map.get(j, TOP_K + 1)
             producto_id = idx2item[j]
             rows_batch.append((
                 cliente_id,
