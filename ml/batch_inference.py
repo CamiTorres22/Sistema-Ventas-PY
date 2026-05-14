@@ -65,7 +65,7 @@ SIGMA_ROTATION = 0.2    # inflexión en p25 de rotación_diaria
 
 # ── Umbrales para flags de negocio ────────────────────────────────────────────
 UMBRAL_URGENCIA = 30    # días: <= 30 → es_urgente
-UMBRAL_NOVEDAD  = 90    # días: <= 90 → es_nuevo (decisión de negocio: ventana amplia)
+UMBRAL_NOVEDAD  = 200   # días: <= 200 → es_nuevo (cubre productos del catálogo reciente)
 
 TOP_K = 10
 

@@ -23,6 +23,7 @@ import argparse
 import json
 import logging
 import sqlite3
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -32,6 +33,8 @@ from datetime import date
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)-8s  %(message)s",
+    stream=sys.stdout,
+    force=True,
 )
 logger = logging.getLogger(__name__)
 
@@ -50,6 +53,41 @@ RANDOM_SEED   = 42
 # ──────────────────────────────────────────────────────────────────────────────
 # 1. CARGA Y VALIDACIÓN
 # ──────────────────────────────────────────────────────────────────────────────
+
+def load_all_products_from_db(db_path: Path) -> pd.DataFrame:
+    """
+    Carga TODOS los productos activos del catálogo, incluyendo los que
+    nunca han sido comprados (productos nuevos sin historial).
+    Necesario para que el pipeline los incluya en los índices y contexto.
+    """
+    conn = sqlite3.connect(db_path)
+    query = """
+        SELECT
+            producto_id, categoria_producto,
+            precio_unitario, costo_unitario   AS COSTO_UNITARIO,
+            stock, dias_en_stock, sede,
+            fecha_ingreso_catalogo, fecha_min_caducidad,
+            rotacion_diaria, baja_rotacion
+        FROM productos
+        WHERE activo = 1
+    """
+    df = pd.read_sql_query(
+        query, conn,
+        parse_dates=["fecha_ingreso_catalogo", "fecha_min_caducidad"],
+    )
+    conn.close()
+
+    FECHA_HOY = pd.Timestamp(date.today())
+    df["dias_para_vencer"] = (
+        pd.to_datetime(df["fecha_min_caducidad"]) - FECHA_HOY
+    ).dt.days
+
+    logger.info(
+        "Catálogo completo: %d productos activos (incluyendo nuevos sin historial)",
+        len(df),
+    )
+    return df
+
 
 def load_from_db(db_path: Path) -> pd.DataFrame:
     """
@@ -133,16 +171,30 @@ def load_dataset(path: Path) -> pd.DataFrame:
 # 2. ÍNDICES — mapeo ID string ↔ entero (requerido por los embeddings)
 # ──────────────────────────────────────────────────────────────────────────────
 
-def build_indices(df: pd.DataFrame) -> tuple[dict, dict, dict, dict]:
+def build_indices(
+    df: pd.DataFrame,
+    all_products_df: pd.DataFrame | None = None,
+) -> tuple[dict, dict, dict, dict]:
     """
     Construye los mapas cliente_id ↔ int e producto_id ↔ int.
     El orden es determinístico (sorted) para reproducibilidad entre runs.
+
+    Si se pasa all_products_df, los índices de productos incluyen TODOS
+    los productos activos del catálogo (no solo los con historial de compras).
+    Esto es esencial para que los productos nuevos sean recomendables.
 
     Returns:
         user2idx, idx2user, item2idx, idx2item
     """
     clientes  = sorted(df["cliente_id"].unique())
-    productos = sorted(df["producto_id"].unique())
+    if all_products_df is not None:
+        productos = sorted(all_products_df["producto_id"].unique())
+        logger.info(
+            "Índices de productos: %d (catálogo completo) vs %d (solo con historial)",
+            len(productos), df["producto_id"].nunique(),
+        )
+    else:
+        productos = sorted(df["producto_id"].unique())
 
     user2idx = {c: i for i, c in enumerate(clientes)}
     idx2user = {i: c for c, i in user2idx.items()}
@@ -365,12 +417,19 @@ def save_artefacts(
 def main(source: str, dataset_path: Path, db_path: Path, out_dir: Path) -> None:
     if source == "db":
         df = load_from_db(db_path)
+        # Cargar todos los productos activos (incluyendo nuevos sin historial de compras)
+        all_products_df = load_all_products_from_db(db_path)
     else:
         df = load_dataset(dataset_path)
+        all_products_df = None  # modo CSV: solo productos con historial
 
-    user2idx, idx2user, item2idx, idx2item = build_indices(df)
+    # Los índices deben incluir TODOS los productos del catálogo
+    user2idx, idx2user, item2idx, idx2item = build_indices(df, all_products_df)
     pares = build_training_pairs(df, user2idx, item2idx)
-    ctx   = build_product_context(df, item2idx)
+
+    # El contexto de productos usa el catálogo completo (con productos nuevos)
+    ctx_df = all_products_df if all_products_df is not None else df
+    ctx    = build_product_context(ctx_df, item2idx)
 
     save_artefacts(pares, ctx, user2idx, idx2user, item2idx, idx2item, out_dir)
     logger.info("ETL completado exitosamente.")

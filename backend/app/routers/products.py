@@ -11,6 +11,7 @@ Endpoints:
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -84,7 +85,10 @@ async def crear_producto(
     if existing.scalar_one_or_none():
         raise HTTPException(409, f"El producto '{data.producto_id}' ya existe.")
 
-    prod = Producto(**data.model_dump(), rotacion_diaria=0.0, baja_rotacion=0)
+    prod_data = data.model_dump()
+    if not prod_data.get("fecha_ingreso_catalogo"):
+        prod_data["fecha_ingreso_catalogo"] = date.today().isoformat()
+    prod = Producto(**prod_data, rotacion_diaria=0.0, baja_rotacion=0)
     db.add(prod)
     await db.commit()
     await db.refresh(prod)

@@ -40,7 +40,7 @@ function AdminSidebar() {
 
   function handleLogout() {
     logout();
-    router.replace("/login");
+    router.replace("/cerrar-sesion");
   }
 
   return (
@@ -80,21 +80,26 @@ function AdminSidebar() {
             </Link>
           );
         })}
-      </nav>
 
-      {/* Footer */}
-      <div className="px-3 py-4 border-t border-white/10">
-        <div className="px-3 py-2 mb-2">
-          <p className="text-white text-sm font-medium truncate">{nombre ?? "—"}</p>
-          <p className="text-gray-400 text-xs">Administrador</p>
-        </div>
+        {/* Separador */}
+        <div className="border-t border-white/10 my-2" />
+
+        {/* Cerrar sesión como pestaña */}
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-all"
         >
           <LogOut size={18} />
-          Cerrar sesión
+          <span className="flex-1 text-left">Cerrar sesión</span>
         </button>
+      </nav>
+
+      {/* Footer */}
+      <div className="px-3 py-4 border-t border-white/10">
+        <div className="px-3 py-2">
+          <p className="text-white text-sm font-medium truncate">{nombre ?? "—"}</p>
+          <p className="text-gray-400 text-xs">Administrador</p>
+        </div>
       </div>
     </aside>
   );

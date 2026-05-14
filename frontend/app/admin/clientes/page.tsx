@@ -7,7 +7,7 @@ import type { Cliente, VendedorOut } from "@/lib/types";
 
 type View = "list" | "agregar" | "editar";
 
-const SEDES = ["Lima Norte", "Lima Sur", "Lima Este", "Callao", "Provincia"];
+const SEDES = ["Lima", "Arequipa", "Piura", "Cusco"];
 const TIPOS = ["Mayorista", "Minorista", "Corporativo"];
 const RUBROS = [
   "Restaurante", "Hotel", "Bar", "Cafetería", "Bodega",
@@ -44,7 +44,7 @@ const FORM_INICIAL = {
   ruc: "",
   telefono: "",
   rubro_cliente: "Restaurante",
-  sede_cliente: "Lima Norte",
+  sede_cliente: "Lima",
   tipo: "Mayorista",
   activo: true,
 };
@@ -176,7 +176,6 @@ export default function AdminClientesPage() {
         tipo: form.tipo || undefined,
       });
       setClientes((prev) => [nuevo, ...prev]);
-      setSeleccion((prev) => ({ ...prev, [nuevo.cliente_id]: "" }));
       showSuccess(`Cliente "${nuevo.nombre}" creado correctamente.`);
       volver();
     } catch (err: unknown) {
@@ -568,9 +567,7 @@ export default function AdminClientesPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {paginados.map((c) => {
-                const vidStr = seleccion[c.cliente_id] ?? "";
-                const vid = vidStr ? Number(vidStr) : null;
-                const nombreVendedor = vid ? vendedorMap[vid] : null;
+                const nombreVendedor = c.vendedor_id ? vendedorMap[c.vendedor_id] : null;
 
                 return (
                   <tr key={c.cliente_id} className="hover:bg-gray-50">

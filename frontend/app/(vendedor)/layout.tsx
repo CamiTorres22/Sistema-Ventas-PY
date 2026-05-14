@@ -39,7 +39,7 @@ function Sidebar() {
 
   function handleLogout() {
     logout();
-    router.replace("/login");
+    router.replace("/cerrar-sesion");
   }
 
   return (
@@ -84,21 +84,26 @@ function Sidebar() {
             </Link>
           );
         })}
-      </nav>
 
-      {/* Footer */}
-      <div className="px-3 py-4 border-t border-blue-500/30">
-        <div className="px-3 py-2 mb-2">
-          <p className="text-white text-sm font-medium truncate">{nombre ?? "—"}</p>
-          <p className="text-blue-200 text-xs">Vendedor</p>
-        </div>
+        {/* Separador */}
+        <div className="border-t border-blue-500/30 my-2" />
+
+        {/* Cerrar sesión como pestaña */}
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-blue-100 hover:bg-white/10 hover:text-white transition-all"
         >
           <LogOut size={18} />
-          Cerrar sesión
+          <span className="flex-1 text-left">Cerrar sesión</span>
         </button>
+      </nav>
+
+      {/* Footer */}
+      <div className="px-3 py-4 border-t border-blue-500/30">
+        <div className="px-3 py-2">
+          <p className="text-white text-sm font-medium truncate">{nombre ?? "—"}</p>
+          <p className="text-blue-200 text-xs">Vendedor</p>
+        </div>
       </div>
     </aside>
   );

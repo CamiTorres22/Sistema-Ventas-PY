@@ -35,6 +35,8 @@ from ml.ncf.model import NeuMF
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)-8s  %(message)s",
+    stream=sys.stdout,
+    force=True,
 )
 logger = logging.getLogger(__name__)
 
@@ -260,12 +262,24 @@ def train(
     best_val_auc = 0.0
     best_epoch   = 0
 
+    n_train_batches = len(train_dl)
+    LOG_EVERY = max(1, n_train_batches // 5)   # log ~5 veces por época
+
+    logger.info("=" * 60)
+    logger.info(
+        "INICIANDO ENTRENAMIENTO: %d épocas × %d batches/época = %d iteraciones totales",
+        epochs, n_train_batches, epochs * n_train_batches,
+    )
+    logger.info("=" * 60)
+
+    t_global = time.time()
+
     for epoch in range(1, epochs + 1):
         t0 = time.time()
         model.train()
         train_loss = 0.0
 
-        for users, items, labels, weights in train_dl:
+        for batch_idx, (users, items, labels, weights) in enumerate(train_dl, start=1):
             users   = users.to(device)
             items   = items.to(device)
             labels  = labels.to(device)
@@ -278,6 +292,16 @@ def train(
             optimizer.step()
 
             train_loss += loss.item() * len(users)
+
+            if batch_idx % LOG_EVERY == 0 or batch_idx == n_train_batches:
+                pct = batch_idx / n_train_batches * 100
+                elapsed_ep = time.time() - t0
+                eta_ep = elapsed_ep / batch_idx * (n_train_batches - batch_idx)
+                logger.info(
+                    "  Época %d/%d | Batch %d/%d (%.0f%%) | loss_batch: %.4f | ETA época: %.0fs",
+                    epoch, epochs, batch_idx, n_train_batches, pct,
+                    loss.item(), eta_ep,
+                )
 
         train_loss /= len(train_ds)
 
@@ -313,9 +337,11 @@ def train(
         }
         history.append(epoch_log)
 
+        epochs_restantes = epochs - epoch
+        eta_total = elapsed * epochs_restantes
         logger.info(
-            "Epoch %2d/%d | train_loss: %.4f | val_loss: %.4f | val_AUC: %.4f | %.1fs",
-            epoch, epochs, train_loss, val_loss, val_auc, elapsed,
+            "── Época %2d/%d completa | train_loss: %.4f | val_loss: %.4f | val_AUC: %.4f | %.1fs | ETA total: %.0fs",
+            epoch, epochs, train_loss, val_loss, val_auc, elapsed, eta_total,
         )
 
         mlflow.log_metrics(
@@ -340,10 +366,11 @@ def train(
                 MODEL_PATH,
             )
 
-    logger.info(
-        "Entrenamiento finalizado. Mejor modelo: epoch %d | val_AUC: %.4f",
-        best_epoch, best_val_auc,
-    )
+    t_total = time.time() - t_global
+    logger.info("=" * 60)
+    logger.info("ENTRENAMIENTO COMPLETADO en %.1fs (%.1f min)", t_total, t_total / 60)
+    logger.info("Mejor modelo: época %d | val_AUC: %.4f", best_epoch, best_val_auc)
+    logger.info("=" * 60)
     logger.info("Modelo guardado en: %s", MODEL_PATH)
 
     # ── Evaluación NDCG@10 (leave-one-out sobre el mejor modelo) ──────────────

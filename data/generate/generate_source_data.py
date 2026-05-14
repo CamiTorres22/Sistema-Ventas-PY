@@ -222,7 +222,7 @@ productos_base = []
 for _ in range(N_PRODUCTOS):
     precio_unitario = round2(random.uniform(1.5, 150.0))
     costo_unitario  = round2(precio_unitario * random.uniform(0.40, 0.75))
-    fecha_ingreso   = rand_date(date(2022, 1, 1), date(2025, 12, 31))
+    fecha_ingreso   = rand_date(date(2022, 1, 1), date(2026, 5, 31))
     fecha_caducidad = date.today() + timedelta(days=random.randint(-5, 365))
 
     sede_origen = random.choice(SEDES)
