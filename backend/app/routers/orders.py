@@ -123,7 +123,7 @@ async def listar_pedidos(
     estado:     Optional[str] = Query(default=None),
     cliente_id: Optional[str] = Query(default=None),
     skip:       int           = Query(default=0, ge=0),
-    limit:      int           = Query(default=20, ge=1, le=100),
+    limit:      int           = Query(default=20, ge=1, le=1000),
     db:         AsyncSession  = Depends(get_db),
     user:       Usuario       = Depends(get_current_user),
 ):
@@ -134,7 +134,14 @@ async def listar_pedidos(
     q = select(Pedido).options(selectinload(Pedido.detalles), selectinload(Pedido.cliente))
 
     if user.rol != "admin":
-        q = q.where(Pedido.vendedor_id == user.id)
+        if cliente_id:
+            # Al filtrar por cliente, incluye pedidos propios Y pedidos históricos
+            # (vendedor_id=NULL) para que el vendedor vea el historial completo del cliente
+            q = q.where(
+                (Pedido.vendedor_id == user.id) | (Pedido.vendedor_id == None)
+            )
+        else:
+            q = q.where(Pedido.vendedor_id == user.id)
     if estado:
         q = q.where(Pedido.estado == estado)
     if cliente_id:

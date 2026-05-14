@@ -19,10 +19,12 @@ function formatDate(s: string) {
 }
 
 const ESTADO_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  pendiente:  { bg: "#FFF3BF", text: "#E67700", label: "Pendiente" },
-  confirmado: { bg: "#DBE4FF", text: "#3B5BDB", label: "En proceso" },
-  entregado:  { bg: "#D3F9D8", text: "#2F9E44", label: "Completado" },
-  cancelado:  { bg: "#FFE3E3", text: "#C92A2A", label: "Cancelado" },
+  pendiente:   { bg: "#FFF3BF", text: "#E67700", label: "Pendiente" },
+  confirmado:  { bg: "#DBE4FF", text: "#3B5BDB", label: "En proceso" },
+  en_proceso:  { bg: "#DBE4FF", text: "#3B5BDB", label: "En proceso" },
+  entregado:   { bg: "#D3F9D8", text: "#2F9E44", label: "Completado" },
+  completado:  { bg: "#D3F9D8", text: "#2F9E44", label: "Completado" },
+  cancelado:   { bg: "#FFE3E3", text: "#C92A2A", label: "Cancelado" },
 };
 
 const PERIODOS = [
