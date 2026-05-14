@@ -1,3 +1,3 @@
-from .model import NeuMF
+from .model import NCF
 
-__all__ = ["NeuMF"]
+__all__ = ["NCF"]

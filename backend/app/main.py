@@ -1,5 +1,5 @@
 """
-main.py — FastAPI — ICO Distribuidora v2 (NeuMF)
+main.py — FastAPI — ICO Distribuidora v2 (NCF)
 
 FastAPI NO carga el modelo en memoria. Las recomendaciones se leen
 desde la tabla `predicciones` en SQLite, generada por batch_inference.py.
@@ -42,9 +42,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="ICO Distribuidora — API de Recomendaciones NeuMF",
+    title="ICO Distribuidora — API de Recomendaciones NCF",
     description="""
-## Sistema de Recomendación NeuMF — ICO Distribuidora
+## Sistema de Recomendación NCF — ICO Distribuidora
 
 Score final: `0.55 × ncf_score + 0.20 × score_urgency + 0.15 × score_rotation + 0.10 × score_novelty`
 

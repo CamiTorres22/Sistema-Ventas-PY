@@ -1,5 +1,5 @@
 """
-evaluate.py — Evaluación del modelo NeuMF con NDCG@10
+evaluate.py — Evaluación del modelo NCF con NDCG@10
 
 Calcula NDCG@10 (Normalized Discounted Cumulative Gain) sobre un conjunto
 de test leave-one-out: para cada usuario, se toma su interacción más reciente
@@ -25,7 +25,7 @@ import torch
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from ml.ncf.model import NeuMF
+from ml.ncf.model import NCF
 
 logging.basicConfig(
     level=logging.INFO,
@@ -85,7 +85,7 @@ def evaluate() -> None:
         )
 
     checkpoint = torch.load(MODEL_PATH, map_location=device)
-    model = NeuMF(
+    model = NCF(
         n_users=checkpoint["n_users"],
         n_items=checkpoint["n_items"],
         k=checkpoint["k"],

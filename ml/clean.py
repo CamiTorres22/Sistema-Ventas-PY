@@ -1,5 +1,5 @@
 """
-clean.py — ETL: SQLite (o dataset_ml.csv) → artefactos de entrada para NeuMF
+clean.py — ETL: SQLite (o dataset_ml.csv) → artefactos de entrada para NCF
 
 Genera los 3 archivos que necesita el pipeline de ML:
   1. pares_entrenamiento.parquet  — interacciones implícitas + negative sampling (1:4)
@@ -222,7 +222,7 @@ def build_training_pairs(
     seed: int = RANDOM_SEED,
 ) -> pd.DataFrame:
     """
-    Construye el dataset de pares (usuario, ítem, label, weight) para entrenar NeuMF.
+    Construye el dataset de pares (usuario, ítem, label, weight) para entrenar NCF.
 
     Positivos (label=1):
         Cada par (cliente_id, producto_id) del historial de compras.
@@ -436,7 +436,7 @@ def main(source: str, dataset_path: Path, db_path: Path, out_dir: Path) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="ETL NeuMF — ICO Distribuidora")
+    parser = argparse.ArgumentParser(description="ETL NCF — ICO Distribuidora")
     parser.add_argument(
         "--source", choices=["db", "csv"], default="db",
         help="Fuente de datos: 'db' = SQLite ico.db (recomendado) | 'csv' = dataset_ml.csv",

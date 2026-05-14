@@ -2,7 +2,7 @@
 admin.py — Panel de administración y métricas del modelo
 
 Endpoints:
-  GET /admin/metricas       → métricas del modelo NeuMF
+  GET /admin/metricas       → métricas del modelo NCF
   GET /admin/actividad      → actividad reciente del sistema
 """
 
@@ -34,7 +34,7 @@ async def metricas_modelo(
     db:     AsyncSession = Depends(get_db),
     _admin: Usuario      = Depends(require_admin),
 ):
-    """Devuelve métricas del modelo NeuMF y del batch más reciente."""
+    """Devuelve métricas del modelo NCF y del batch más reciente."""
     eval_data  = {}
     train_data = {}
 

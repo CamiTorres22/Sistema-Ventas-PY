@@ -1,7 +1,7 @@
 """
-model.py — Arquitectura NeuMF (Neural Collaborative Filtering)
+model.py — Arquitectura NCF (Neural Collaborative Filtering)
 
-Implementa el modelo NeuMF completo según He et al. (2017):
+Implementa el modelo NCF completo según He et al. (2017):
   - GMF path: captura interacciones lineales (equivalente a MF clásico)
   - MLP path: captura interacciones no lineales mediante capas densas
   - Fusión: concatenación GMF[64] + MLP[32] → Dense(1) + Sigmoid
@@ -13,9 +13,9 @@ import torch
 import torch.nn as nn
 
 
-class NeuMF(nn.Module):
+class NCF(nn.Module):
     """
-    Neural Matrix Factorization (NeuMF) — GMF + MLP fusionados.
+    Neural Matrix Factorization (NCF) — GMF + MLP fusionados.
 
     Args:
         n_users:    Número de usuarios únicos (800 en el dataset actual).

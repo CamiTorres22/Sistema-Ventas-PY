@@ -1,7 +1,7 @@
 """
-train.py — Entrenamiento del modelo NeuMF
+train.py — Entrenamiento del modelo NCF
 
-Lee los artefactos generados por clean.py y entrena el modelo NeuMF.
+Lee los artefactos generados por clean.py y entrena el modelo NCF.
 Al finalizar guarda:
   - data/processed/modelo_ncf.pt    (pesos del modelo)
   - data/processed/train_metrics.json (métricas de entrenamiento)
@@ -30,7 +30,7 @@ from torch.utils.data import DataLoader, Dataset
 # Importar modelo relativo al root del proyecto
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from ml.ncf.model import NeuMF
+from ml.ncf.model import NCF
 
 logging.basicConfig(
     level=logging.INFO,
@@ -130,7 +130,7 @@ def _evaluate_ndcg(
       - métricas   = NDCG@10, HitRate@10, Precision@10
     """
     checkpoint = torch.load(model_path, map_location=device)
-    model = NeuMF(
+    model = NCF(
         n_users=checkpoint["n_users"],
         n_items=checkpoint["n_items"],
         k=checkpoint["k"],
@@ -230,7 +230,7 @@ def train(
     logger.info("Train: %d pares | Val: %d pares", len(train_ds), len(val_ds))
 
     # ── Modelo ─────────────────────────────────────────────────────────────────
-    model = NeuMF(
+    model = NCF(
         n_users=n_users,
         n_items=n_items,
         k=k,
@@ -244,7 +244,7 @@ def train(
     criterion = nn.BCELoss(reduction="none")   # reduction=none para aplicar weights
 
     # ── MLflow run ────────────────────────────────────────────────────────────
-    mlflow.set_experiment("NeuMF-ICO")
+    mlflow.set_experiment("NCF-ICO")
     run = mlflow.start_run()
     mlflow.log_params({
         "epochs":        epochs,
@@ -420,7 +420,7 @@ def train(
 # ──────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Entrenamiento NeuMF — ICO Distribuidora")
+    parser = argparse.ArgumentParser(description="Entrenamiento NCF — ICO Distribuidora")
     parser.add_argument("--epochs", type=int,   default=DEFAULT_EPOCHS)
     parser.add_argument("--batch",  type=int,   default=DEFAULT_BATCH)
     parser.add_argument("--k",      type=int,   default=DEFAULT_K)

@@ -35,7 +35,7 @@ import torch
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from ml.ncf.model import NeuMF
+from ml.ncf.model import NCF
 
 logging.basicConfig(
     level=logging.INFO,
@@ -160,7 +160,7 @@ def run_batch(db_path: Path = DB_PATH) -> None:
             f"Modelo no encontrado en {MODEL_PATH}. Ejecuta primero: python ml/train.py"
         )
     checkpoint = torch.load(MODEL_PATH, map_location=device)
-    model = NeuMF(
+    model = NCF(
         n_users=checkpoint["n_users"],
         n_items=checkpoint["n_items"],
         k=checkpoint["k"],
@@ -334,7 +334,7 @@ def run_batch(db_path: Path = DB_PATH) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Batch Inference NeuMF — ICO Distribuidora")
+    parser = argparse.ArgumentParser(description="Batch Inference NCF — ICO Distribuidora")
     parser.add_argument(
         "--db", type=Path, default=DB_PATH,
         help="Ruta a la base de datos SQLite.",
