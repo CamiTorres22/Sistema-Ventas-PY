@@ -8,7 +8,6 @@ import type { Cliente, VendedorOut } from "@/lib/types";
 type View = "list" | "agregar" | "editar";
 
 const SEDES = ["Lima", "Arequipa", "Piura", "Cusco"];
-const TIPOS = ["Mayorista", "Minorista", "Corporativo"];
 const RUBROS = [
   "Restaurante", "Hotel", "Bar", "Cafetería", "Bodega",
   "Supermercado", "Catering", "Panadería", "Otro",
@@ -42,10 +41,8 @@ const FORM_INICIAL = {
   cliente_id: "",
   nombre: "",
   ruc: "",
-  telefono: "",
   rubro_cliente: "Restaurante",
   sede_cliente: "Lima",
-  tipo: "Mayorista",
   activo: true,
 };
 
@@ -145,10 +142,8 @@ export default function AdminClientesPage() {
       cliente_id: c.cliente_id,
       nombre: c.nombre,
       ruc: c.ruc ?? "",
-      telefono: c.telefono ?? "",
       rubro_cliente: c.rubro_cliente,
       sede_cliente: c.sede_cliente,
-      tipo: c.tipo ?? "Mayorista",
       activo: c.activo,
     });
     setError("");
@@ -170,10 +165,8 @@ export default function AdminClientesPage() {
         cliente_id: form.cliente_id,
         nombre: form.nombre,
         ruc: form.ruc || undefined,
-        telefono: form.telefono || undefined,
         rubro_cliente: form.rubro_cliente,
         sede_cliente: form.sede_cliente,
-        tipo: form.tipo || undefined,
       });
       setClientes((prev) => [nuevo, ...prev]);
       showSuccess(`Cliente "${nuevo.nombre}" creado correctamente.`);
@@ -194,10 +187,8 @@ export default function AdminClientesPage() {
       const actualizado = await api.clientes.update(clienteEditando.cliente_id, {
         nombre: form.nombre,
         ruc: form.ruc || undefined,
-        telefono: form.telefono || undefined,
         rubro_cliente: form.rubro_cliente,
         sede_cliente: form.sede_cliente,
-        tipo: form.tipo || undefined,
         activo: form.activo,
       });
       setClientes((prev) =>
@@ -295,44 +286,16 @@ export default function AdminClientesPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Teléfono
+                  Sede <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={form.telefono}
-                  onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="555-1234"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sede <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    required
-                    value={form.sede_cliente}
-                    onChange={(e) => setForm({ ...form, sede_cliente: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  >
-                    {SEDES.map((s) => <option key={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tipo de Cliente <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    required
-                    value={form.tipo}
-                    onChange={(e) => setForm({ ...form, tipo: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  >
-                    {TIPOS.map((t) => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
+                <select
+                  required
+                  value={form.sede_cliente}
+                  onChange={(e) => setForm({ ...form, sede_cliente: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  {SEDES.map((s) => <option key={s}>{s}</option>)}
+                </select>
               </div>
 
               <div>
@@ -430,7 +393,7 @@ export default function AdminClientesPage() {
                   </div>
                   <p className="font-semibold text-gray-900">{clienteEditando.nombre}</p>
                   <p className="text-xs text-gray-400 mt-1">
-                    {clienteEditando.tipo} | {clienteEditando.sede_cliente}
+                    {clienteEditando.sede_cliente}
                   </p>
                 </div>
               </div>
@@ -560,7 +523,6 @@ export default function AdminClientesPage() {
                 <th className="text-left px-4 py-3 font-medium text-gray-500">RUC/NIT</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Sede</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Vendedor Asignado</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Tipo</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Estado</th>
                 <th className="text-center px-4 py-3 font-medium text-gray-500">Acciones</th>
               </tr>
@@ -591,7 +553,6 @@ export default function AdminClientesPage() {
                         <span className="text-orange-500 text-xs font-medium">Sin asignar</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 text-xs">{c.tipo ?? "—"}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                         c.activo ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"

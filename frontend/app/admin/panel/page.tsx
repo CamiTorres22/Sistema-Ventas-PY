@@ -80,7 +80,7 @@ export default function PanelAdminPage() {
     <div className="p-6 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Panel de Administración</h1>
-        <p className="text-gray-500 mt-1">Métricas del modelo NeuMF y actividad del sistema</p>
+        <p className="text-gray-500 mt-1">Métricas del modelo NCF y actividad del sistema</p>
       </div>
 
       {/* Health status */}

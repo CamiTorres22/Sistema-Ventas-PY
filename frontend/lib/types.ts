@@ -35,12 +35,10 @@ export interface Cliente {
   cliente_id: string;
   nombre: string;
   ruc: string | null;
-  telefono: string | null;
   rubro_cliente: string;
   subrubro_1: string | null;
   subrubro_2: string | null;
   sede_cliente: string;
-  tipo: string | null;
   activo: boolean;
   vendedor_id?: number | null;
 }

@@ -27,9 +27,8 @@ function addBusinessDays(date: Date, days: number): Date {
 
 function formatEntrega(date: Date) {
   return date.toLocaleDateString("es-PE", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
+    day: "2-digit",
+    month: "2-digit",
     year: "numeric",
   });
 }
@@ -98,9 +97,7 @@ export default function CarritoPage() {
   const [activeTab, setActiveTab]         = useState<TabRec>("baja_rotacion");
   const [submitting, setSubmitting]       = useState(false);
   const [error, setError]                 = useState("");
-  const [formaPago, setFormaPago]         = useState("credito_30");
-  const [notas, setNotas]                 = useState("");
-  const [showFormaPago, setShowFormaPago] = useState(false);
+  const [formaPago, setFormaPago] = useState("credito_30");
 
   useEffect(() => {
     const stored = sessionStorage.getItem("ico_cliente_id");
@@ -132,8 +129,7 @@ export default function CarritoPage() {
 
   const subtotal   = total;
   const impuesto   = subtotal * TAX_RATE;
-  const descuento  = 0;
-  const totalFinal = subtotal + impuesto - descuento;
+  const totalFinal = subtotal + impuesto;
   const entrega    = addBusinessDays(new Date(), 3);
 
   const formaLabel = FORMAS_PAGO.find((f) => f.value === formaPago)?.label ?? formaPago;
@@ -161,7 +157,6 @@ export default function CarritoPage() {
           desde_recomendacion: i.desde_recomendacion,
         })),
         forma_pago: formaPago,
-        notas: notas || undefined,
       });
       clearCart();
       router.push(`/historial/${pedido.id}?nuevo=true`);
@@ -182,9 +177,6 @@ export default function CarritoPage() {
           <p className="text-sm text-gray-700 flex-1">
             <span className="text-gray-500">Cliente seleccionado: </span>
             <span className="font-semibold" style={{ color: "#3B5BDB" }}>{clienteSelec.nombre}</span>
-            {clienteSelec.tipo && (
-              <span className="text-gray-500 ml-3">{clienteSelec.tipo}</span>
-            )}
             {clienteSelec.ruc && (
               <span className="text-gray-500 ml-3">| RUC: {clienteSelec.ruc}</span>
             )}
@@ -215,16 +207,15 @@ export default function CarritoPage() {
         </div>
       )}
 
-      <div className="flex flex-col xl:flex-row gap-6">
-        {/* ── Columna izquierda ── */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* ── Columna izquierda: Productos ── */}
         <div className="flex-1">
-          {/* Tabla de productos */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
+          <div className="bg-white rounded-xl border border-gray-200 flex flex-col" style={{ maxHeight: "400px" }}>
+            <div className="px-5 py-4 border-b border-gray-100 flex-shrink-0">
               <h2 className="font-semibold text-gray-900">Productos en el Carrito</h2>
             </div>
             {items.length === 0 ? (
-              <div className="py-12 text-center">
+              <div className="py-12 text-center flex-1">
                 <p className="text-gray-400 text-sm">El carrito está vacío.</p>
                 <p className="text-gray-400 text-xs mt-1">
                   Agrega productos del catálogo o de las recomendaciones.
@@ -232,73 +223,75 @@ export default function CarritoPage() {
               </div>
             ) : (
               <>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-100 bg-gray-50">
-                      <th className="text-left px-5 py-3 font-medium text-gray-400">Producto</th>
-                      <th className="text-right px-4 py-3 font-medium text-gray-400">P. Unit.</th>
-                      <th className="text-center px-4 py-3 font-medium text-gray-400">Cantidad</th>
-                      <th className="text-right px-4 py-3 font-medium text-gray-400">Subtotal</th>
-                      <th className="px-4 py-3" />
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {items.map(({ producto, cantidad, desde_recomendacion }) => (
-                      <tr key={producto.producto_id} className="hover:bg-gray-50">
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-2">
-                            <Package size={15} className="text-gray-300 flex-shrink-0" />
-                            <div>
-                              <p className="font-medium text-gray-900">{producto.nombre}</p>
-                              <div className="flex items-center gap-2">
-                                <p className="text-xs text-gray-400">{producto.categoria_producto}</p>
-                                {desde_recomendacion && (
-                                  <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
-                                    Recom.
-                                  </span>
-                                )}
+                <div className="overflow-y-auto flex-1">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 z-10 bg-gray-50">
+                      <tr className="border-b border-gray-100">
+                        <th className="text-left px-4 py-2 font-medium text-gray-400 text-sm">Producto</th>
+                        <th className="text-right px-2 py-2 font-medium text-gray-400 text-sm w-20">P. Unit.</th>
+                        <th className="text-center px-2 py-2 font-medium text-gray-400 text-sm w-24">Cantidad</th>
+                        <th className="text-right px-2 py-2 font-medium text-gray-400 text-sm w-20">Subtotal</th>
+                        <th className="px-2 py-2 w-12" />
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {items.map(({ producto, cantidad, desde_recomendacion }) => (
+                        <tr key={producto.producto_id} className="hover:bg-gray-50">
+                          <td className="px-4 py-2">
+                            <div className="flex items-center gap-2">
+                              <Package size={13} className="text-gray-300 flex-shrink-0" />
+                              <div>
+                                <p className="font-medium text-gray-900 text-sm">{producto.nombre}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-xs text-gray-400">{producto.categoria_producto}</p>
+                                  {desde_recomendacion && (
+                                    <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
+                                      Recom.
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right text-gray-500">
-                          {formatCurrency(producto.precio_unitario)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-center gap-1">
+                          </td>
+                          <td className="px-2 py-2 text-right text-gray-500 text-sm">
+                            {formatCurrency(producto.precio_unitario)}
+                          </td>
+                          <td className="px-2 py-2">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => updateCantidad(producto.producto_id, cantidad - 1)}
+                                className="w-6 h-6 rounded border border-gray-200 flex items-center justify-center hover:bg-gray-50"
+                              >
+                                <Minus size={10} />
+                              </button>
+                              <span className="w-7 text-center font-semibold text-gray-900 text-sm">{cantidad}</span>
+                              <button
+                                onClick={() => updateCantidad(producto.producto_id, cantidad + 1)}
+                                disabled={cantidad >= producto.stock}
+                                className="w-6 h-6 rounded flex items-center justify-center text-white disabled:opacity-40"
+                                style={{ backgroundColor: "#3B5BDB" }}
+                              >
+                                <Plus size={10} />
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-2 py-2 text-right font-semibold text-gray-900 text-sm">
+                            {formatCurrency(producto.precio_unitario * cantidad)}
+                          </td>
+                          <td className="px-2 py-2 text-right">
                             <button
-                              onClick={() => updateCantidad(producto.producto_id, cantidad - 1)}
-                              className="w-7 h-7 rounded border border-gray-200 flex items-center justify-center hover:bg-gray-50"
+                              onClick={() => removeItem(producto.producto_id)}
+                              className="text-xs text-red-400 hover:text-red-600 font-medium"
                             >
-                              <Minus size={12} />
+                              Quitar
                             </button>
-                            <span className="w-9 text-center font-semibold text-gray-900">{cantidad}</span>
-                            <button
-                              onClick={() => updateCantidad(producto.producto_id, cantidad + 1)}
-                              disabled={cantidad >= producto.stock}
-                              className="w-7 h-7 rounded flex items-center justify-center text-white disabled:opacity-40"
-                              style={{ backgroundColor: "#3B5BDB" }}
-                            >
-                              <Plus size={12} />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                          {formatCurrency(producto.precio_unitario * cantidad)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button
-                            onClick={() => removeItem(producto.producto_id)}
-                            className="text-xs text-red-400 hover:text-red-600 font-medium"
-                          >
-                            Quitar
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between flex-shrink-0">
                   <span className="text-sm text-gray-500">{itemCount} productos agregados</span>
                   <span className="text-sm font-semibold" style={{ color: "#3B5BDB" }}>
                     Subtotal: {formatCurrency(subtotal)}
@@ -307,17 +300,15 @@ export default function CarritoPage() {
               </>
             )}
           </div>
-
         </div>
 
         {/* ── Columna derecha: Resumen ── */}
-        <div className="xl:w-72 flex-shrink-0">
-          <div className="bg-white rounded-xl border border-gray-200 p-5 sticky top-6">
-            <h2 className="font-semibold text-gray-900 mb-4">Resumen del Pedido</h2>
+        <div className="lg:w-72 flex-shrink-0">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col justify-between" style={{ height: "400px" }}>
+            <h2 className="font-semibold text-gray-900 mb-3">Resumen del Pedido</h2>
 
-            {/* Info cliente */}
             {clienteSelec && (
-              <div className="flex justify-between text-sm mb-3">
+              <div className="flex justify-between text-xs mb-2">
                 <span className="text-gray-400">Cliente:</span>
                 <span className="font-medium text-gray-900 text-right max-w-[150px] truncate">
                   {clienteSelec.nombre}
@@ -325,7 +316,7 @@ export default function CarritoPage() {
               </div>
             )}
 
-            <div className="space-y-2 text-sm">
+            <div className="space-y-1.5 text-xs">
               <div className="flex justify-between text-gray-500">
                 <span>Subtotal ({itemCount} productos)</span>
                 <span>{formatCurrency(subtotal)}</span>
@@ -334,37 +325,21 @@ export default function CarritoPage() {
                 <span>Impuesto (12%)</span>
                 <span>{formatCurrency(impuesto)}</span>
               </div>
-              <div className="flex justify-between text-gray-500">
-                <span>Descuento cliente</span>
-                <span>-{formatCurrency(descuento)}</span>
-              </div>
             </div>
 
-            <div className="border-t border-gray-100 my-3" />
+            <div className="border-t border-gray-100 my-2" />
 
-            <div className="flex justify-between font-bold text-base mb-4">
+            <div className="flex justify-between font-bold text-sm mb-3">
               <span className="text-gray-900">TOTAL</span>
               <span style={{ color: "#3B5BDB" }}>{formatCurrency(totalFinal)}</span>
             </div>
 
-            {/* Notas */}
-            <p className="text-xs font-medium text-gray-600 mb-1">Notas (opcional):</p>
-            <textarea
-              rows={2}
-              value={notas}
-              onChange={(e) => setNotas(e.target.value)}
-              placeholder="Instrucciones de entrega..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-4"
-            />
-
-            {error && (
-              <p className="text-xs text-red-500 mb-3">{error}</p>
-            )}
+            {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
 
             <button
               onClick={handleConfirmar}
               disabled={!clienteId || items.length === 0 || submitting}
-              className="w-full py-3 rounded-lg text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed mb-2"
+              className="w-full py-2 rounded-lg text-white text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed mb-1.5"
               style={{ backgroundColor: "#3B5BDB" }}
             >
               {submitting ? "Procesando..." : "Confirmar Pedido"}
@@ -372,42 +347,27 @@ export default function CarritoPage() {
 
             <button
               onClick={() => router.push("/productos")}
-              className="w-full py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+              className="w-full py-2 rounded-lg text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
             >
               Seguir Agregando Productos
             </button>
 
-            <div className="border-t border-gray-100 mt-4 pt-4 space-y-2 text-sm">
+            <div className="border-t border-gray-100 mt-3 pt-3 space-y-1.5">
               <div className="flex justify-between items-center">
-                <span className="text-gray-400">Forma de pago:</span>
-                {showFormaPago ? (
-                  <select
-                    value={formaPago}
-                    onChange={(e) => { setFormaPago(e.target.value); setShowFormaPago(false); }}
-                    autoFocus
-                    onBlur={() => setShowFormaPago(false)}
-                    className="text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none"
-                  >
-                    {FORMAS_PAGO.map((f) => (
-                      <option key={f.value} value={f.value}>{f.label}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <span className="text-gray-900 font-medium">
-                    {formaLabel}{" "}
-                    <button
-                      onClick={() => setShowFormaPago(true)}
-                      className="text-xs ml-1"
-                      style={{ color: "#3B5BDB" }}
-                    >
-                      Cambiar &gt;
-                    </button>
-                  </span>
-                )}
+                <span className="text-xs text-gray-400">Forma de pago:</span>
+                <select
+                  value={formaPago}
+                  onChange={(e) => setFormaPago(e.target.value)}
+                  className="text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                >
+                  {FORMAS_PAGO.map((f) => (
+                    <option key={f.value} value={f.value}>{f.label}</option>
+                  ))}
+                </select>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Entrega estimada:</span>
-                <span className="text-gray-900 font-medium text-right text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400">Entrega estimada:</span>
+                <span className="text-xs text-gray-900 font-medium text-right">
                   {formatEntrega(entrega)}
                 </span>
               </div>
@@ -416,15 +376,14 @@ export default function CarritoPage() {
         </div>
       </div>
 
-      {/* ── Recomendaciones (ancho completo, debajo del layout) ── */}
+      {/* ── Recomendaciones (debajo del layout) ── */}
       {clienteId && (
         <div className="mt-6">
-          <h2 className="font-semibold text-gray-900 mb-1">Recomendaciones para este cliente</h2>
+          <h2 className="font-bold text-gray-900 text-lg mb-1">Recomendaciones para este cliente</h2>
           <p className="text-sm text-gray-400 mb-3">
             Productos sugeridos según historial, vencimientos y novedades del catálogo
           </p>
 
-          {/* Tabs */}
           <div className="flex gap-2 mb-4">
             {TAB_CONFIG.map((tab) => (
               <button
@@ -442,30 +401,25 @@ export default function CarritoPage() {
             ))}
           </div>
 
-          {/* Panel recomendaciones */}
           {loadingRec ? (
             <div className="py-8 text-center text-gray-400 text-sm">Cargando recomendaciones...</div>
           ) : recList.length === 0 ? (
-            <div className="py-8 text-center text-gray-400 text-sm">
+            <div className="py-8 text-center text-gray-400 text-sm bg-white rounded-xl border border-gray-200">
               No hay recomendaciones en esta categoría.
             </div>
           ) : (
             <div className="rounded-xl overflow-hidden border border-gray-200">
-              {/* Header del panel */}
               <div
                 className="px-5 py-3 flex items-center justify-between"
                 style={{ backgroundColor: tabCfg.headerBg }}
               >
-                <p className="font-semibold text-white text-sm">
-                  Productos con {tabCfg.label}
-                </p>
+                <p className="font-semibold text-white text-sm">Productos con {tabCfg.label}</p>
                 {activeTab === "urgentes" && (
                   <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded font-medium">
                     ⚠ VENCEN EN &lt; 30 DIAS
                   </span>
                 )}
               </div>
-              {/* Cards */}
               <div
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4"
                 style={{ backgroundColor: tabCfg.cardBg }}
@@ -545,10 +499,11 @@ function RecCard({
             : `En catálogo hace ${rec.dias_en_catalogo ?? "—"} días`}
         </p>
         <div className="flex items-center gap-2">
-          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+          <div className="flex items-stretch border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => setCantidad((q) => Math.max(1, q - 1))}
-              className="px-2 py-1 text-gray-500 hover:bg-gray-50 text-sm"
+              className="px-2 py-1 text-white text-sm"
+              style={{ backgroundColor: tabCfg.headerBg }}
             >
               <Minus size={11} />
             </button>

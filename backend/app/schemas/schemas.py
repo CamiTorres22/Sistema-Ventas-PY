@@ -45,12 +45,10 @@ class ClienteOut(BaseModel):
     cliente_id:    str
     nombre:        str
     ruc:           Optional[str] = None
-    telefono:      Optional[str] = None
     rubro_cliente: str
     subrubro_1:    Optional[str] = None
     subrubro_2:    Optional[str] = None
     sede_cliente:  str
-    tipo:          Optional[str] = None
     activo:        bool
     vendedor_id:   Optional[int] = None   # vendedor actualmente asignado
 
@@ -61,23 +59,19 @@ class ClienteCreate(BaseModel):
     cliente_id:    str
     nombre:        str
     ruc:           Optional[str] = None
-    telefono:      Optional[str] = None
     rubro_cliente: str
     subrubro_1:    Optional[str] = None
     subrubro_2:    Optional[str] = None
     sede_cliente:  str
-    tipo:          Optional[str] = None
 
 
 class ClienteUpdate(BaseModel):
     nombre:        Optional[str] = None
     ruc:           Optional[str] = None
-    telefono:      Optional[str] = None
     rubro_cliente: Optional[str] = None
     subrubro_1:    Optional[str] = None
     subrubro_2:    Optional[str] = None
     sede_cliente:  Optional[str] = None
-    tipo:          Optional[str] = None
     activo:        Optional[bool] = None
 
 

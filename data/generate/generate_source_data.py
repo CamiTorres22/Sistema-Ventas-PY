@@ -124,8 +124,6 @@ SUBRUBRO_1_POR_RUBRO = {
     "Hotel":        ["Boutique", "Business", "Turístico", "Resort", "Hostal", "Apart-hotel"],
     "Catering":     ["Eventos Corporativos", "Matrimonios", "Escolar", "Industrial", "Social"],
     "Bodega":       ["Barrio", "Mayorista", "Abarrotes", "Licorería", "Mixta"],
-    "Farmacia":     ["Independiente", "Cadena", "Naturista", "Homeopática"],
-    "Ferretería":   ["General", "Especializada", "Mayorista", "Industrial"],
     "Bar":          ["Karaoke", "Sports Bar", "Cocteles", "Cervecería",
                      "Vinos", "Lounge", "Pub"],
     "Fast Food":    ["Hamburguesas", "Pollo", "Pizza", "Tacos",
@@ -142,8 +140,6 @@ SUBRUBRO_2_POR_RUBRO = {
     "Hotel":        ["Restaurante Propio", "Desayuno Incluido", "Solo Alojamiento", "Todo Incluido"],
     "Catering":     ["On-Site", "Off-Site", "Mixto"],
     "Bodega":       ["Mostrador", "Autoservicio", "Mostrador + Delivery"],
-    "Farmacia":     ["Mostrador", "Autoservicio", "Drive-Thru"],
-    "Ferretería":   ["Mostrador", "Autoservicio", "Catálogo Online"],
     "Bar":          ["Presencial", "Reservas", "Presencial + Eventos"],
     "Fast Food":    ["Salón", "Drive-Thru", "Delivery", "Salón + Delivery", "Solo Delivery"],
 }
@@ -204,7 +200,7 @@ print(f"✔ clientes.csv  ({len(clientes)} filas)")
 
 CATEGORIAS = [
     "Lácteos", "Panadería", "Bebidas", "Carnes", "Verduras",
-    "Frutas", "Abarrotes", "Limpieza", "Snacks", "Congelados"
+    "Frutas", "Abarrotes", "Snacks", "Congelados"
 ]
 
 def generar_stock():

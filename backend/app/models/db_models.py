@@ -48,12 +48,10 @@ class Cliente(Base):
     cliente_id:    Mapped[str]  = mapped_column(String(20), primary_key=True)
     nombre:        Mapped[str]  = mapped_column(String(150), nullable=False)
     ruc:           Mapped[str | None] = mapped_column(String(11))
-    telefono:      Mapped[str | None] = mapped_column(String(20))
     rubro_cliente: Mapped[str]  = mapped_column(String(50), nullable=False)
     subrubro_1:    Mapped[str | None] = mapped_column(String(50))
     subrubro_2:    Mapped[str | None] = mapped_column(String(50))
     sede_cliente:  Mapped[str]  = mapped_column(String(30), nullable=False)
-    tipo:          Mapped[str | None] = mapped_column(String(30))   # Mayorista | Minorista | Corporativo
     activo:        Mapped[bool] = mapped_column(Boolean, default=True)
     creado_en:     Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 

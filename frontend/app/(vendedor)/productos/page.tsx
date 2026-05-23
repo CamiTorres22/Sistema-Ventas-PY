@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, ShoppingCart, Package } from "lucide-react";
+import { Search, ShoppingCart, Package, Plus, Minus } from "lucide-react";
 import { api } from "@/lib/api";
 import { useCart } from "@/lib/cart-context";
 import type { Producto } from "@/lib/types";
@@ -50,8 +50,8 @@ export default function ProductosPage() {
     return matchQ && matchCat && p.activo;
   });
 
-  function handleAdd(p: Producto) {
-    addItem(p, false);
+  function handleAdd(p: Producto, cantidad: number) {
+    for (let i = 0; i < cantidad; i++) addItem(p, false);
     setAdded(p.producto_id);
     setTimeout(() => setAdded(null), 1200);
   }
@@ -100,7 +100,7 @@ export default function ProductosPage() {
               producto={p}
               inCart={inCart(p.producto_id)}
               justAdded={added === p.producto_id}
-              onAdd={() => handleAdd(p)}
+              onAdd={(cantidad) => handleAdd(p, cantidad)}
             />
           ))}
         </div>
@@ -118,8 +118,9 @@ function ProductCard({
   producto: Producto;
   inCart: boolean;
   justAdded: boolean;
-  onAdd: () => void;
+  onAdd: (cantidad: number) => void;
 }) {
+  const [cantidad, setCantidad] = useState(1);
   const stockBajo = producto.stock > 0 && producto.stock < 10;
   const sinStock = producto.stock <= 0;
 
@@ -159,23 +160,48 @@ function ProductCard({
               producto.precio_unitario
             )}
           </p>
-          <button
-            onClick={onAdd}
-            disabled={sinStock}
-            className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all disabled:cursor-not-allowed ${
-              justAdded
-                ? "bg-green-500 text-white"
-                : inCart
-                ? "bg-blue-50 border border-blue-300 text-blue-700"
-                : sinStock
-                ? "bg-gray-100 text-gray-400"
-                : "text-white"
-            }`}
-            style={!justAdded && !inCart && !sinStock ? { backgroundColor: "#3B5BDB" } : {}}
-          >
-            <ShoppingCart size={15} />
-            {justAdded ? "¡Agregado!" : inCart ? "En carrito" : "Agregar"}
-          </button>
+
+          {/* Selector de cantidad + botón agregar */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+              <button
+                onClick={() => setCantidad((q) => Math.max(1, q - 1))}
+                disabled={sinStock}
+                className="px-2 py-1.5 text-white disabled:opacity-40"
+                style={{ backgroundColor: "#3B5BDB" }}
+              >
+                <Minus size={12} />
+              </button>
+              <span className="px-2 text-sm font-semibold text-gray-900 min-w-[24px] text-center">
+                {cantidad}
+              </span>
+              <button
+                onClick={() => setCantidad((q) => Math.min(producto.stock, q + 1))}
+                disabled={sinStock || cantidad >= producto.stock}
+                className="px-2 py-1.5 text-white disabled:opacity-40"
+                style={{ backgroundColor: "#3B5BDB" }}
+              >
+                <Plus size={12} />
+              </button>
+            </div>
+            <button
+              onClick={() => { onAdd(cantidad); setCantidad(1); }}
+              disabled={sinStock}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-sm font-medium transition-all disabled:cursor-not-allowed ${
+                justAdded
+                  ? "bg-green-500 text-white"
+                  : inCart
+                  ? "bg-blue-50 border border-blue-300 text-blue-700"
+                  : sinStock
+                  ? "bg-gray-100 text-gray-400"
+                  : "text-white"
+              }`}
+              style={!justAdded && !inCart && !sinStock ? { backgroundColor: "#3B5BDB" } : {}}
+            >
+              <ShoppingCart size={13} />
+              {justAdded ? "¡Agregado!" : inCart ? "En carrito" : "Agregar"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

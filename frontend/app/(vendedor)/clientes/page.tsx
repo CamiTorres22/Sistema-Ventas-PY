@@ -39,7 +39,6 @@ export default function ClientesPage() {
   const [loading, setLoading] = useState(true);
   const [buscar, setBuscar] = useState("");
   const [sedeFilter, setSedeFilter] = useState("");
-  const [tipoFilter, setTipoFilter] = useState("");
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
 
   useEffect(() => {
@@ -57,11 +56,6 @@ export default function ClientesPage() {
     () => Array.from(new Set(clientes.map((c) => c.sede_cliente))).sort(),
     [clientes]
   );
-  const tipos = useMemo(
-    () => Array.from(new Set(clientes.map((c) => c.tipo ?? "").filter(Boolean))).sort(),
-    [clientes]
-  );
-
   // Último pedido por cliente
   const ultimoPedido = useMemo(() => {
     const map: Record<string, PedidoResumen> = {};
@@ -77,10 +71,9 @@ export default function ClientesPage() {
     return clientes.filter((c) => {
       const matchQ = !q || c.nombre.toLowerCase().includes(q) || (c.ruc ?? "").includes(q);
       const matchSede = !sedeFilter || c.sede_cliente === sedeFilter;
-      const matchTipo = !tipoFilter || (c.tipo ?? "") === tipoFilter;
-      return matchQ && matchSede && matchTipo;
+      return matchQ && matchSede;
     });
-  }, [clientes, buscar, sedeFilter, tipoFilter]);
+  }, [clientes, buscar, sedeFilter]);
 
   function irAProductos(clienteId: string) {
     sessionStorage.setItem("ico_cliente_id", clienteId);
@@ -119,19 +112,6 @@ export default function ClientesPage() {
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 flex-shrink-0">Tipo:</span>
-          <select
-            value={tipoFilter}
-            onChange={(e) => setTipoFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="">Todos</option>
-            {tipos.map((t) => (
-              <option key={t}>{t}</option>
-            ))}
-          </select>
-        </div>
         <button
           onClick={() => seleccionado && irAProductos(seleccionado)}
           disabled={!seleccionado}
@@ -161,10 +141,8 @@ export default function ClientesPage() {
                 <tr className="border-b border-gray-100 bg-gray-50">
                   <th className="text-left px-5 py-3 font-medium text-gray-400">Nombre del Negocio</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-400">Sede</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-400">Teléfono</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-400">Último Pedido</th>
                   <th className="text-right px-4 py-3 font-medium text-gray-400">Monto</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-400">Tipo</th>
                   <th className="text-center px-4 py-3 font-medium text-gray-400">Acción</th>
                 </tr>
               </thead>
@@ -202,14 +180,12 @@ export default function ClientesPage() {
                           {c.sede_cliente}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{c.telefono ?? "—"}</td>
                       <td className="px-4 py-3 text-gray-500">
                         {ultimo ? formatDate(ultimo.creado_en) : "—"}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-gray-900">
                         {ultimo ? formatCurrency(ultimo.total) : "—"}
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{c.tipo ?? "—"}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-2">
                           <button

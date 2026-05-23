@@ -29,7 +29,6 @@ router = APIRouter(prefix="/clientes", tags=["Clientes"])
 async def listar_clientes(
     buscar: Optional[str] = Query(default=None, description="Buscar por nombre"),
     sede:   Optional[str] = Query(default=None),
-    tipo:   Optional[str] = Query(default=None),
     skip:   int           = Query(default=0, ge=0),
     limit:  int           = Query(default=50, ge=1, le=5000),
     db:     AsyncSession  = Depends(get_db),
@@ -57,8 +56,6 @@ async def listar_clientes(
             q = q.where(Cliente.nombre.ilike(f"%{buscar}%"))
         if sede:
             q = q.where(Cliente.sede_cliente == sede)
-        if tipo:
-            q = q.where(Cliente.tipo == tipo)
 
         q = q.order_by(Cliente.nombre).offset(skip).limit(limit)
         result = await db.execute(q)
@@ -81,8 +78,6 @@ async def listar_clientes(
             q = q.where(Cliente.nombre.ilike(f"%{buscar}%"))
         if sede:
             q = q.where(Cliente.sede_cliente == sede)
-        if tipo:
-            q = q.where(Cliente.tipo == tipo)
 
         q = q.order_by(Cliente.nombre).offset(skip).limit(limit)
         result = await db.execute(q)
