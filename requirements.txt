@@ -20,7 +20,8 @@ python-multipart>=0.0.9            # form data (login)
 
 # ── Base de datos ─────────────────────────────────────────────────────────────
 sqlalchemy>=2.0.0
-aiosqlite>=0.19.0       # SQLite async para FastAPI
+asyncpg>=0.29.0         # PostgreSQL async para FastAPI (reemplaza aiosqlite)
+psycopg2-binary>=2.9.0  # PostgreSQL sync para batch_inference.py
 
 # ── Notebooks ─────────────────────────────────────────────────────────────────
 jupyter>=1.0.0

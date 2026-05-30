@@ -152,13 +152,13 @@ function DetallePedidoContent() {
                     <div className="flex items-center gap-3">
                       <Package size={15} className="text-gray-300 flex-shrink-0" />
                       <div>
-                        <p className="font-medium text-gray-900">{d.nombre}</p>
+                        <p className="font-medium text-gray-900">{d.produto_id}</p>
                         <p className="text-xs text-gray-400">{d.categoria_producto}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-3 py-3 text-center font-semibold" style={{ color: "#3B5BDB" }}>
-                    x{d.cantidad}
+                    x{d.quantidade_produto}
                   </td>
                   <td className="px-3 py-3 text-right text-gray-500">
                     {formatCurrency(d.precio_unit)}

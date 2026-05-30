@@ -49,15 +49,15 @@ async def listar_clientes(
         )
 
         q = select(Cliente, vendedor_subq.label("cv_vendedor_id")).where(
-            Cliente.activo == True
+            Cliente.cliente_id != None
         )
 
         if buscar:
-            q = q.where(Cliente.nombre.ilike(f"%{buscar}%"))
+            q = q.where(Cliente.cliente_id.ilike(f"%{buscar}%"))
         if sede:
             q = q.where(Cliente.sede_cliente == sede)
 
-        q = q.order_by(Cliente.nombre).offset(skip).limit(limit)
+        q = q.order_by(Cliente.cliente_id).offset(skip).limit(limit)
         result = await db.execute(q)
         rows = result.all()
         return [
@@ -71,15 +71,15 @@ async def listar_clientes(
             .join(ClienteVendedor, ClienteVendedor.cliente_id == Cliente.cliente_id)
             .where(ClienteVendedor.vendedor_id == user.id)
             .where(ClienteVendedor.activo == True)
-            .where(Cliente.activo == True)
+            .where(Cliente.cliente_id != None)
         )
 
         if buscar:
-            q = q.where(Cliente.nombre.ilike(f"%{buscar}%"))
+            q = q.where(Cliente.cliente_id.ilike(f"%{buscar}%"))
         if sede:
             q = q.where(Cliente.sede_cliente == sede)
 
-        q = q.order_by(Cliente.nombre).offset(skip).limit(limit)
+        q = q.order_by(Cliente.cliente_id).offset(skip).limit(limit)
         result = await db.execute(q)
         return result.scalars().all()
 

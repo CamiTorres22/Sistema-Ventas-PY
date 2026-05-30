@@ -43,7 +43,7 @@ export default function ProductosPage() {
 
   const filtered = productos.filter((p) => {
     const matchQ = buscar
-      ? p.nombre.toLowerCase().includes(buscar.toLowerCase()) ||
+      ? p.producto_id.toLowerCase().includes(buscar.toLowerCase()) ||
         p.producto_id.toLowerCase().includes(buscar.toLowerCase())
       : true;
     const matchCat = categoria === "Todas" || p.categoria_producto === categoria;
@@ -149,7 +149,7 @@ function ProductCard({
             href={`/productos/${producto.producto_id}`}
             className="font-semibold text-gray-900 text-sm mt-2 line-clamp-2 hover:text-blue-600 transition-colors"
           >
-            {producto.nombre}
+            {producto.producto_id}
           </Link>
           <p className="text-xs text-gray-400 mt-0.5">{producto.categoria_producto}</p>
         </div>

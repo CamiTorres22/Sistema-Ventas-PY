@@ -176,7 +176,7 @@ export default function CarritoPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-3 mb-5 flex items-center gap-4">
           <p className="text-sm text-gray-700 flex-1">
             <span className="text-gray-500">Cliente seleccionado: </span>
-            <span className="font-semibold" style={{ color: "#3B5BDB" }}>{clienteSelec.nombre}</span>
+            <span className="font-semibold" style={{ color: "#3B5BDB" }}>{clienteSelec.cliente_id}</span>
             {clienteSelec.ruc && (
               <span className="text-gray-500 ml-3">| RUC: {clienteSelec.ruc}</span>
             )}
@@ -200,7 +200,7 @@ export default function CarritoPage() {
             <option value="">— Seleccionar cliente —</option>
             {clientes.map((c) => (
               <option key={c.cliente_id} value={c.cliente_id}>
-                {c.nombre} ({c.sede_cliente})
+                {c.cliente_id} ({c.sede_cliente})
               </option>
             ))}
           </select>
@@ -241,7 +241,7 @@ export default function CarritoPage() {
                             <div className="flex items-center gap-2">
                               <Package size={13} className="text-gray-300 flex-shrink-0" />
                               <div>
-                                <p className="font-medium text-gray-900 text-sm">{producto.nombre}</p>
+                                <p className="font-medium text-gray-900 text-sm">{producto.producto_id}</p>
                                 <div className="flex items-center gap-2">
                                   <p className="text-xs text-gray-400">{producto.categoria_producto}</p>
                                   {desde_recomendacion && (
@@ -311,7 +311,7 @@ export default function CarritoPage() {
               <div className="flex justify-between text-xs mb-2">
                 <span className="text-gray-400">Cliente:</span>
                 <span className="font-medium text-gray-900 text-right max-w-[150px] truncate">
-                  {clienteSelec.nombre}
+                  {clienteSelec.cliente_id}
                 </span>
               </div>
             )}
@@ -434,7 +434,7 @@ export default function CarritoPage() {
                       addItem(
                         {
                           producto_id: rec.producto_id,
-                          nombre: rec.nombre,
+                          produto_id: rec.produto_id,
                           categoria_producto: rec.categoria_producto,
                           precio_unitario: rec.precio_unitario,
                           stock: rec.stock,
@@ -484,7 +484,7 @@ function RecCard({
       </div>
       <div className="p-3">
         <p className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-1">
-          {rec.nombre}
+          {rec.produto_id}
         </p>
         <p className="text-base font-bold mb-0.5" style={{ color: tabCfg.headerBg }}>
           {formatCurrency(rec.precio_unitario)}

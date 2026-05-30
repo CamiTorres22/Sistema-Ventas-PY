@@ -7,7 +7,7 @@ Genera los 3 archivos que necesita el pipeline de ML:
   3. indices.json                 — mapeo cliente_id/producto_id ↔ índice entero
 
 FUENTES DE DATOS:
-  --source db   (por defecto) → lee pedidos + detalle_pedido + productos de ico.db
+  --source db   (por defecto) → lee pedidos + detalle_pedido + productos de Supabase PostgreSQL
                                  Solo pedidos con creado_en < hoy y estado != cancelado
   --source csv  → lee data/processed/dataset_ml.csv (comportamiento original)
 
@@ -22,7 +22,11 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import sqlite3
+import os
+import psycopg2
+from dotenv import load_dotenv
+
+load_dotenv()
 import sys
 from pathlib import Path
 
@@ -41,7 +45,6 @@ logger = logging.getLogger(__name__)
 # ── Rutas por defecto ──────────────────────────────────────────────────────────
 ROOT_DIR      = Path(__file__).resolve().parent.parent
 DATASET_PATH  = ROOT_DIR / "data" / "processed" / "dataset_ml.csv"
-DB_PATH       = ROOT_DIR / "data" / "db" / "ico.db"
 OUTPUT_DIR    = ROOT_DIR / "data" / "processed"
 
 # ── Parámetros ─────────────────────────────────────────────────────────────────
@@ -54,13 +57,15 @@ RANDOM_SEED   = 42
 # 1. CARGA Y VALIDACIÓN
 # ──────────────────────────────────────────────────────────────────────────────
 
-def load_all_products_from_db(db_path: Path) -> pd.DataFrame:
+def load_all_products_from_db(db_path: Path = None) -> pd.DataFrame:
     """
-    Carga TODOS los productos activos del catálogo, incluyendo los que
-    nunca han sido comprados (productos nuevos sin historial).
-    Necesario para que el pipeline los incluya en los índices y contexto.
+    Carga TODOS los productos activos del catalogo desde Supabase (PostgreSQL).
+    Incluye productos nuevos sin historial para que el pipeline los indexe.
     """
-    conn = sqlite3.connect(db_path)
+    direct_url = os.getenv("DIRECT_URL")
+    if not direct_url:
+        raise RuntimeError("DIRECT_URL no esta definido en .env")
+    conn = psycopg2.connect(direct_url)
     query = """
         SELECT
             producto_id, categoria_producto,
@@ -69,7 +74,7 @@ def load_all_products_from_db(db_path: Path) -> pd.DataFrame:
             fecha_ingreso_catalogo, fecha_min_caducidad,
             rotacion_diaria, baja_rotacion
         FROM productos
-        WHERE activo = 1
+        WHERE activo = TRUE
     """
     df = pd.read_sql_query(
         query, conn,
@@ -89,9 +94,9 @@ def load_all_products_from_db(db_path: Path) -> pd.DataFrame:
     return df
 
 
-def load_from_db(db_path: Path) -> pd.DataFrame:
+def load_from_db(db_path: Path = None) -> pd.DataFrame:
     """
-    Carga el historial de compras directamente desde SQLite (ico.db).
+    Carga el historial de compras directamente desde SQLite (Supabase PostgreSQL).
 
     JOIN: pedidos × detalle_pedido × productos
     Filtros:
@@ -101,15 +106,11 @@ def load_from_db(db_path: Path) -> pd.DataFrame:
     Devuelve un DataFrame con las mismas columnas que dataset_ml.csv
     para que el resto del pipeline sea idéntico.
     """
-    if not db_path.exists():
-        raise FileNotFoundError(
-            f"No se encontró la BD en {db_path}. "
-            "Ejecuta seed.py y migrate_historical.py primero."
-        )
-
-    logger.info("Cargando datos desde SQLite: %s ...", db_path)
-
-    conn = sqlite3.connect(db_path)
+    direct_url = os.getenv("DIRECT_URL")
+    if not direct_url:
+        raise RuntimeError("DIRECT_URL no esta definido en .env")
+    logger.info("Cargando datos desde Supabase (PostgreSQL) ...")
+    conn = psycopg2.connect(direct_url)
 
     query = """
         SELECT
@@ -130,8 +131,8 @@ def load_from_db(db_path: Path) -> pd.DataFrame:
         JOIN detalle_pedido dp ON dp.pedido_id = p.id
         JOIN productos pr      ON pr.producto_id = dp.producto_id
         WHERE p.estado != 'cancelado'
-          AND DATE(p.creado_en) < DATE('now')
-          AND pr.activo = 1
+          AND DATE(p.creado_en) < CURRENT_DATE
+          AND pr.activo = TRUE
     """
 
     df = pd.read_sql_query(
@@ -414,11 +415,10 @@ def save_artefacts(
 # MAIN
 # ──────────────────────────────────────────────────────────────────────────────
 
-def main(source: str, dataset_path: Path, db_path: Path, out_dir: Path) -> None:
+def main(source: str, dataset_path: Path, out_dir: Path) -> None:
     if source == "db":
-        df = load_from_db(db_path)
-        # Cargar todos los productos activos (incluyendo nuevos sin historial de compras)
-        all_products_df = load_all_products_from_db(db_path)
+        df = load_from_db()
+        all_products_df = load_all_products_from_db()
     else:
         df = load_dataset(dataset_path)
         all_products_df = None  # modo CSV: solo productos con historial
@@ -439,19 +439,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ETL NCF — ICO Distribuidora")
     parser.add_argument(
         "--source", choices=["db", "csv"], default="db",
-        help="Fuente de datos: 'db' = SQLite ico.db (recomendado) | 'csv' = dataset_ml.csv",
+        help="Fuente de datos: 'db' = Supabase PostgreSQL (recomendado) | 'csv' = dataset_ml.csv",
     )
     parser.add_argument(
         "--dataset", type=Path, default=DATASET_PATH,
         help="Ruta al dataset_ml.csv (solo si --source csv).",
     )
     parser.add_argument(
-        "--db", type=Path, default=DB_PATH,
-        help="Ruta a ico.db (solo si --source db).",
+        help="Ruta a Supabase PostgreSQL (solo si --source db).",
     )
     parser.add_argument(
         "--out", type=Path, default=OUTPUT_DIR,
         help="Directorio de salida para los artefactos.",
     )
     args = parser.parse_args()
-    main(args.source, args.dataset, args.db, args.out)
+    main(args.source, args.dataset, args.out)

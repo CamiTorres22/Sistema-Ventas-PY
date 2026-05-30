@@ -98,7 +98,7 @@ export default function DetalleProductoPage() {
           </div>
 
           <p className="text-xs text-gray-400 font-mono mb-1">{producto.producto_id}</p>
-          <p className="font-semibold text-gray-900 text-center text-sm">{producto.nombre}</p>
+          <p className="font-semibold text-gray-900 text-center text-sm">{producto.producto_id}</p>
         </div>
 
         {/* Panel derecho — información */}

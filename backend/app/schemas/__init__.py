@@ -3,7 +3,7 @@ from .schemas import (
     DashboardResponse, DetallePedidoOut, HealthResponse,
     ItemCarrito, LoginRequest, MetricasModelo,
     PedidoCreate, PedidoOut, PedidoResumen,
-    ProductoCreate, ProductoOut, ProductoRecomendado, ProductoUpdate,
+    ProductoCreate, ProductoOut, ProductoRecomendado,
     RecomendacionResponse, StockUpdate,
     TokenResponse, UsuarioOut, VendedorCreate, VendedorUpdate,
 )

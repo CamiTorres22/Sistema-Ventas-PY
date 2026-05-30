@@ -34,14 +34,13 @@ export interface VendedorOut {
 
 export interface Cliente {
   cliente_id: string;
-  nombre: string;
-  ruc: string | null;
   rubro_cliente: string;
   subrubro_1: string | null;
   subrubro_2: string | null;
   sede_cliente: string;
-  activo: boolean;
   vendedor_id?: number | null;
+  // helper computed on frontend
+  nome?: string;
 }
 
 // ── Productos ─────────────────────────────────────────────────────────────────
@@ -113,18 +112,10 @@ export interface DetallePedido {
 }
 
 export interface Pedido {
-  id: number;
-  numero: string;
+  venta_id: string;
   cliente_id: string;
-  vendedor_id: number;
-  estado: string;
-  subtotal: number;
-  impuesto: number;
-  descuento: number;
-  total: number;
-  forma_pago: string | null;
-  notas: string | null;
-  creado_en: string;
+  fecha_venta: string;
+  monto_total: number;
   detalles: DetallePedido[];
 }
 

@@ -55,7 +55,7 @@ PROB_FAVORITO = 0.80
 
 random.seed(SEED)
 
-OUTPUT_DIR = "C:/Users/Camila/Downloads/"
+OUTPUT_DIR = "data/raw"
 
 # ─────────────────────────────────────────
 # HELPERS

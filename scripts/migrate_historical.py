@@ -1,144 +1,150 @@
-"""
-migrate_historical.py — Migra el historial de ventas (CSVs) a SQLite
+﻿"""
+migrate_historical.py -- Migra el historial de ventas a Supabase
 
-Lee data/raw/ventas.csv + detalle_venta.csv e inserta los registros
-en las tablas pedidos + detalle_pedido de ico.db.
+Usa COPY FROM (protocolo bulk de PostgreSQL) para insertar
+7.950 pedidos y 35.000+ detalles en segundos.
 
-Los pedidos históricos quedan con:
-  - vendedor_id = NULL  (no había vendedor asignado)
-  - estado      = "entregado"
-  - desde_recomendacion = False
-
-CÓMO EJECUTAR (una sola vez, antes del primer entrenamiento):
-    python scripts/migrate_historical.py
-
-Si ya se ejecutó antes, el script detecta los números de pedido
-existentes y no duplica registros.
+COMO EJECUTAR:
+    python -m scripts.migrate_historical
 """
 
 from __future__ import annotations
 
-import asyncio
+import io
 import logging
+import os
 from pathlib import Path
 
 import pandas as pd
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+import psycopg2
+from dotenv import load_dotenv
 
-from backend.app.database import AsyncSessionLocal, init_db
-from backend.app.models import DetallePedido, Pedido, Producto
+load_dotenv()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s  %(levelname)-8s  %(message)s",
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(levelname)-8s  %(message)s")
 logger = logging.getLogger(__name__)
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 RAW_DIR  = ROOT_DIR / "data" / "raw"
 
 
-async def migrar(db: AsyncSession) -> None:
-    ventas_path   = RAW_DIR / "ventas.csv"
-    detalle_path  = RAW_DIR / "detalle_venta.csv"
+def df_to_tsv(df: pd.DataFrame, columns: list) -> io.StringIO:
+    buf = io.StringIO()
+    for _, row in df.iterrows():
+        vals = []
+        for col in columns:
+            v = row[col]
+            if pd.isna(v) or v is None:
+                vals.append("")
+            else:
+                vals.append(str(v).replace("\\", "\\\\").replace("\t", " ").replace("\n", " "))
+        buf.write("\t".join(vals) + "\n")
+    buf.seek(0)
+    return buf
+
+
+def migrar() -> None:
+    direct_url = os.getenv("DIRECT_URL")
+    if not direct_url:
+        raise RuntimeError("DIRECT_URL no definido en .env")
+
+    ventas_path  = RAW_DIR / "ventas.csv"
+    detalle_path = RAW_DIR / "detalle_venta.csv"
 
     if not ventas_path.exists() or not detalle_path.exists():
-        logger.error("No se encontraron ventas.csv o detalle_venta.csv en %s", RAW_DIR)
+        logger.error("No se encontraron los CSVs en %s", RAW_DIR)
         return
 
-    # ── Cargar CSVs ───────────────────────────────────────────────────────────
-    ventas  = pd.read_csv(ventas_path,  parse_dates=["fecha_venta"])
+    ventas  = pd.read_csv(ventas_path, parse_dates=["fecha_venta"])
     detalle = pd.read_csv(detalle_path, dtype={"producto_id": str})
 
     logger.info("ventas.csv:         %d filas", len(ventas))
     logger.info("detalle_venta.csv:  %d filas", len(detalle))
 
-    # ── Precios desde tabla productos (ya cargada por seed) ───────────────────
-    result   = await db.execute(select(Producto))
-    productos = {p.producto_id: p for p in result.scalars().all()}
+    conn = psycopg2.connect(direct_url)
+    cur  = conn.cursor()
 
-    if not productos:
-        logger.error("La tabla productos está vacía. Ejecuta seed.py primero.")
-        return
-
-    # ── Detectar pedidos ya migrados (evitar duplicados) ─────────────────────
-    existentes_res = await db.execute(select(Pedido.numero))
-    existentes     = {row[0] for row in existentes_res.all()}
+    # Pedidos ya existentes
+    cur.execute("SELECT numero FROM pedidos")
+    existentes = {row[0] for row in cur.fetchall()}
     logger.info("Pedidos ya en BD: %d", len(existentes))
 
-    # ── Migrar ────────────────────────────────────────────────────────────────
-    insertados  = 0
-    omitidos    = 0
-    sin_producto = 0
+    # Productos en BD
+    cur.execute("SELECT producto_id FROM productos")
+    productos_bd = {row[0] for row in cur.fetchall()}
 
-    for _, venta in ventas.iterrows():
-        numero = str(venta["venta_id"])
+    # -- Preparar pedidos nuevos --------------------------------------------------
+    nuevas = ventas[~ventas["venta_id"].astype(str).isin(existentes)].copy()
+    logger.info("Ventas nuevas a insertar: %d", len(nuevas))
 
-        if numero in existentes:
-            omitidos += 1
-            continue
+    if nuevas.empty:
+        logger.info("Nada que hacer.")
+        cur.close(); conn.close(); return
 
-        filas_det = detalle[detalle["venta_id"] == venta["venta_id"]]
-        if filas_det.empty:
-            continue
+    nuevas["numero"]      = nuevas["venta_id"].astype(str)
+    nuevas["vendedor_id"] = None
+    nuevas["estado"]      = "entregado"
+    nuevas["impuesto"]    = 0.0
+    nuevas["descuento"]   = 0.0
+    nuevas["forma_pago"]  = "historico"
+    nuevas["notas"]       = "Migrado desde ventas.csv"
+    nuevas["subtotal"]    = nuevas["monto_total"].fillna(0.0)
+    nuevas["total"]       = nuevas["monto_total"].fillna(0.0)
+    nuevas["creado_en"]   = nuevas["fecha_venta"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
-        # Calcular subtotal desde los detalles (ignorar monto_total del CSV)
-        subtotal = float(venta.get("monto_total", 0))
+    pedidos_cols = ["numero", "cliente_id", "vendedor_id", "estado",
+                    "subtotal", "impuesto", "descuento", "total",
+                    "forma_pago", "notas", "creado_en"]
 
-        pedido = Pedido(
-            numero     = numero,
-            cliente_id = str(venta["cliente_id"]),
-            vendedor_id= None,          # histórico: sin vendedor asignado
-            estado     = "entregado",
-            subtotal   = subtotal,
-            impuesto   = 0.0,
-            descuento  = 0.0,
-            total      = subtotal,
-            forma_pago = "historico",
-            notas      = "Migrado desde ventas.csv",
-            creado_en  = venta["fecha_venta"].to_pydatetime(),
-        )
-        db.add(pedido)
-        await db.flush()   # genera pedido.id
+    # -- COPY pedidos (bulk insert) -----------------------------------------------
+    logger.info("COPY pedidos...")
+    buf = df_to_tsv(nuevas, pedidos_cols)
+    cur.copy_from(buf, "pedidos", columns=pedidos_cols, null="")
+    conn.commit()
+    logger.info("  Pedidos copiados: %d", len(nuevas))
 
-        for _, fila in filas_det.iterrows():
-            pid = str(fila["producto_id"])
-            prod = productos.get(pid)
+    # -- Recuperar id -> numero mapping -------------------------------------------
+    cur.execute("SELECT id, numero FROM pedidos WHERE forma_pago = 'historico'")
+    numero_to_id = {numero: pid for pid, numero in cur.fetchall()}
 
-            if prod is None:
-                sin_producto += 1
-                continue
+    # -- Preparar detalles --------------------------------------------------------
+    det = detalle.copy()
+    det["venta_id_str"] = det["venta_id"].astype(str)
+    det["pedido_id"] = det["venta_id_str"].map(numero_to_id)
+    det = det.dropna(subset=["pedido_id"])
+    det["pedido_id"] = det["pedido_id"].astype(int)
 
-            precio_unit = prod.precio_unitario
-            cantidad    = int(fila["cantidad_producto"])
-            sub         = float(fila.get("subtotal", precio_unit * cantidad))
+    # Solo productos que existen en BD
+    antes = len(det)
+    det = det[det["producto_id"].isin(productos_bd)]
+    sin_prod = antes - len(det)
 
-            db.add(DetallePedido(
-                pedido_id            = pedido.id,
-                producto_id          = pid,
-                cantidad             = cantidad,
-                precio_unit          = precio_unit,
-                subtotal             = sub,
-                desde_recomendacion  = False,
-            ))
+    det["precio_unit"] = (det["subtotal"].fillna(0) / det["cantidad_producto"].clip(lower=1)).round(4)
+    det["desde_recomendacion"] = False
 
-        insertados += 1
+    det_cols = ["pedido_id", "producto_id", "cantidad_producto", "precio_unit", "subtotal", "desde_recomendacion"]
 
-    await db.commit()
+    # Renombrar columna para coincidir con la tabla
+    det = det.rename(columns={"cantidad_producto": "cantidad"})
+    det_cols_renamed = ["pedido_id", "producto_id", "cantidad", "precio_unit", "subtotal", "desde_recomendacion"]
 
-    logger.info("══ Migración completada ══")
-    logger.info("  Insertados:          %d pedidos", insertados)
-    logger.info("  Omitidos (ya exist): %d", omitidos)
-    logger.info("  Detalles sin prod.:  %d (producto no en catálogo)", sin_producto)
+    logger.info("COPY detalle_pedido (%d filas)...", len(det))
+    buf2 = df_to_tsv(det, det_cols_renamed)
+    cur.copy_from(buf2, "detalle_pedido", columns=det_cols_renamed, null="")
+    conn.commit()
 
+    # Conteos finales
+    cur.execute("SELECT COUNT(*) FROM pedidos WHERE forma_pago = 'historico'")
+    total_ped = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM detalle_pedido")
+    total_det = cur.fetchone()[0]
+    cur.close(); conn.close()
 
-async def main() -> None:
-    logger.info("Inicializando BD ...")
-    await init_db()
-    async with AsyncSessionLocal() as db:
-        await migrar(db)
+    logger.info("== Migracion completada ==")
+    logger.info("  Pedidos historicos en BD:  %d", total_ped)
+    logger.info("  Detalles en BD:            %d", total_det)
+    logger.info("  Detalles sin producto:     %d", sin_prod)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    migrar()

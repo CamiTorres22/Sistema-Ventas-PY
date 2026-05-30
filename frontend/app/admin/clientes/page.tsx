@@ -13,6 +13,7 @@ const RUBROS = [
   "Ferretería", "Hotel", "Minimarket", "Panadería", "Restaurante", "Supermercado",
 ];
 
+
 const SUBRUBROS: Record<string, string[]> = {
   "Bar":          ["Cervecería", "Cocteles", "Karaoke", "Lounge", "Pub", "Sports Bar", "Vinos"],
   "Bodega":       ["Abarrotes", "Barrio", "Licorera", "Mayorista", "Mixta"],
@@ -30,13 +31,13 @@ const SUBRUBROS: Record<string, string[]> = {
 
 const SUBRUBROS_2: Record<string, Record<string, string[]>> = {
   "Bar": {
-    "Cervecería": ["Presencial", "Presencial + Eventos", "Reservas"],
-    "Cocteles":   ["Presencial", "Presencial + Eventos", "Reservas"],
-    "Karaoke":    ["Presencial", "Presencial + Eventos", "Reservas"],
-    "Lounge":     ["Presencial", "Reservas"],
-    "Pub":        ["Presencial", "Presencial + Eventos", "Reservas"],
-    "Sports Bar": ["Presencial", "Presencial + Eventos"],
-    "Vinos":      ["Presencial", "Presencial + Eventos", "Reservas"],
+    "Cerveceria":  ["Presencial", "Presencial + Eventos", "Reservas"],
+    "Cocteles":    ["Presencial", "Presencial + Eventos", "Reservas"],
+    "Karaoke":     ["Presencial", "Presencial + Eventos", "Reservas"],
+    "Lounge":      ["Presencial", "Reservas"],
+    "Pub":         ["Presencial", "Presencial + Eventos", "Reservas"],
+    "Sports Bar":  ["Presencial", "Presencial + Eventos"],
+    "Vinos":       ["Presencial", "Presencial + Eventos", "Reservas"],
   },
   "Bodega": {
     "Abarrotes":  ["Autoservicio", "Mostrador", "Mostrador + Delivery"],
@@ -45,12 +46,12 @@ const SUBRUBROS_2: Record<string, Record<string, string[]>> = {
     "Mayorista":  ["Autoservicio", "Mostrador", "Mostrador + Delivery"],
     "Mixta":      ["Autoservicio", "Mostrador", "Mostrador + Delivery"],
   },
-  "Cafetería": {
-    "Especialidad": ["Co-Working", "Para Llevar", "Salón", "Salón + Delivery"],
-    "Moderna":      ["Co-Working", "Para Llevar", "Salón", "Salón + Delivery"],
-    "Saludable":    ["Co-Working", "Salón", "Salón + Delivery"],
-    "Temática":     ["Co-Working", "Para Llevar", "Salón", "Salón + Delivery"],
-    "Tradicional":  ["Co-Working", "Para Llevar", "Salón", "Salón + Delivery"],
+  "Cafeteria": {
+    "Especialidad": ["Co-Working", "Para Llevar", "Salon", "Salon + Delivery"],
+    "Moderna":      ["Co-Working", "Para Llevar", "Salon", "Salon + Delivery"],
+    "Saludable":    ["Co-Working", "Salon", "Salon + Delivery"],
+    "Tematica":     ["Co-Working", "Para Llevar", "Salon", "Salon + Delivery"],
+    "Tradicional":  ["Co-Working", "Para Llevar", "Salon", "Salon + Delivery"],
   },
   "Catering": {
     "Escolar":              ["Mixto", "Off-Site", "On-Site"],
@@ -61,24 +62,24 @@ const SUBRUBROS_2: Record<string, Record<string, string[]>> = {
   },
   "Farmacia": {
     "Cadena":        ["Autoservicio", "Drive-Thru", "Mostrador"],
-    "Homeopática":   ["Autoservicio", "Drive-Thru", "Mostrador"],
+    "Homeopatica":   ["Autoservicio", "Drive-Thru", "Mostrador"],
     "Independiente": ["Autoservicio", "Drive-Thru", "Mostrador"],
     "Naturista":     ["Autoservicio", "Drive-Thru", "Mostrador"],
   },
   "Fast Food": {
-    "Árabe":        ["Delivery"],
-    "Hamburguesas": ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery"],
-    "Pizza":        ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery", "Solo Delivery"],
-    "Pollo":        ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery"],
-    "Sándwiches":   ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery", "Solo Delivery"],
-    "Tacos":        ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery", "Solo Delivery"],
-    "Wraps":        ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery"],
+    "Arabe":        ["Delivery"],
+    "Hamburguesas": ["Delivery", "Drive-Thru", "Salon", "Salon + Delivery"],
+    "Pizza":        ["Delivery", "Drive-Thru", "Salon", "Salon + Delivery", "Solo Delivery"],
+    "Pollo":        ["Delivery", "Drive-Thru", "Salon", "Salon + Delivery"],
+    "Sandwiches":   ["Delivery", "Drive-Thru", "Salon", "Salon + Delivery", "Solo Delivery"],
+    "Tacos":        ["Delivery", "Drive-Thru", "Salon", "Salon + Delivery", "Solo Delivery"],
+    "Wraps":        ["Delivery", "Drive-Thru", "Salon", "Salon + Delivery"],
   },
-  "Ferretería": {
-    "Especializada": ["Autoservicio", "Catálogo Online", "Mostrador"],
-    "General":       ["Autoservicio", "Catálogo Online", "Mostrador"],
-    "Industrial":    ["Autoservicio", "Catálogo Online", "Mostrador"],
-    "Mayorista":     ["Autoservicio", "Catálogo Online", "Mostrador"],
+  "Ferreteria": {
+    "Especializada": ["Autoservicio", "Catalogo Online", "Mostrador"],
+    "General":       ["Autoservicio", "Catalogo Online", "Mostrador"],
+    "Industrial":    ["Autoservicio", "Catalogo Online", "Mostrador"],
+    "Mayorista":     ["Autoservicio", "Catalogo Online", "Mostrador"],
   },
   "Hotel": {
     "Apart-hotel": ["Restaurante Propio", "Todo Incluido"],
@@ -86,46 +87,50 @@ const SUBRUBROS_2: Record<string, Record<string, string[]>> = {
     "Business":    ["Desayuno Incluido", "Restaurante Propio", "Solo Alojamiento", "Todo Incluido"],
     "Hostal":      ["Desayuno Incluido", "Restaurante Propio", "Solo Alojamiento"],
     "Resort":      ["Desayuno Incluido", "Restaurante Propio", "Solo Alojamiento", "Todo Incluido"],
-    "Turístico":   ["Restaurante Propio", "Solo Alojamiento", "Todo Incluido"],
+    "Turistico":   ["Restaurante Propio", "Solo Alojamiento", "Todo Incluido"],
   },
   "Minimarket": {
-    "24 Horas":     ["24 Horas", "Tienda + Delivery", "Tienda Física"],
-    "Barrio":       ["24 Horas", "Tienda + Delivery", "Tienda Física"],
-    "Express":      ["24 Horas", "Tienda + Delivery", "Tienda Física"],
-    "Gasolinera":   ["24 Horas", "Tienda + Delivery", "Tienda Física"],
-    "Universitario":["24 Horas", "Tienda + Delivery", "Tienda Física"],
+    "24 Horas":      ["24 Horas", "Tienda + Delivery", "Tienda Fisica"],
+    "Barrio":        ["24 Horas", "Tienda + Delivery", "Tienda Fisica"],
+    "Express":       ["24 Horas", "Tienda + Delivery", "Tienda Fisica"],
+    "Gasolinera":    ["24 Horas", "Tienda + Delivery", "Tienda Fisica"],
+    "Universitario": ["24 Horas", "Tienda + Delivery", "Tienda Fisica"],
   },
-  "Panadería": {
-    "Artesanal":  ["Distribución", "Local + Distribución", "Local Propio"],
-    "Francesa":   ["Distribución", "Local + Distribución", "Local Propio"],
-    "Industrial": ["Distribución", "Local + Distribución", "Local Propio"],
-    "Integral":   ["Distribución", "Local + Distribución", "Local Propio"],
-    "Pastelería": ["Distribución", "Local + Distribución", "Local Propio"],
-    "Repostería": ["Distribución"],
+  "Panaderia": {
+    "Artesanal":  ["Distribucion", "Local + Distribucion", "Local Propio"],
+    "Francesa":   ["Distribucion", "Local + Distribucion", "Local Propio"],
+    "Industrial": ["Distribucion", "Local + Distribucion", "Local Propio"],
+    "Integral":   ["Distribucion", "Local + Distribucion", "Local Propio"],
+    "Pasteleria": ["Distribucion", "Local + Distribucion", "Local Propio"],
+    "Reposteria": ["Distribucion"],
   },
   "Restaurante": {
-    "Buffet":      ["Dark Kitchen", "Para Llevar", "Salón"],
-    "Carnes":      ["Dark Kitchen", "Delivery", "Delivery + Salón", "Salón"],
-    "Chifa":       ["Dark Kitchen", "Delivery", "Para Llevar", "Salón"],
-    "Criollo":     ["Dark Kitchen", "Delivery", "Delivery + Salón"],
-    "Fusión":      ["Dark Kitchen", "Delivery", "Delivery + Salón", "Para Llevar", "Salón"],
-    "Italiano":    ["Delivery", "Delivery + Salón", "Para Llevar"],
-    "Japonés":     ["Dark Kitchen", "Delivery + Salón", "Para Llevar", "Salón"],
-    "Marino":      ["Dark Kitchen", "Delivery", "Delivery + Salón", "Para Llevar"],
-    "Pollería":    ["Delivery", "Delivery + Salón"],
+    "Buffet":      ["Dark Kitchen", "Para Llevar", "Salon"],
+    "Carnes":      ["Dark Kitchen", "Delivery", "Delivery + Salon", "Salon"],
+    "Chifa":       ["Dark Kitchen", "Delivery", "Para Llevar", "Salon"],
+    "Criollo":     ["Dark Kitchen", "Delivery", "Delivery + Salon"],
+    "Fusion":      ["Dark Kitchen", "Delivery", "Delivery + Salon", "Para Llevar", "Salon"],
+    "Italiano":    ["Delivery", "Delivery + Salon", "Para Llevar"],
+    "Japones":     ["Dark Kitchen", "Delivery + Salon", "Para Llevar", "Salon"],
+    "Marino":      ["Dark Kitchen", "Delivery", "Delivery + Salon", "Para Llevar"],
+    "Polleria":    ["Delivery", "Delivery + Salon"],
     "Vegetariano": ["Delivery", "Para Llevar"],
   },
   "Supermercado": {
-    "Formato Grande":  ["Online + Tienda", "Solo Online", "Tienda Física"],
-    "Formato Mediano": ["Online + Tienda", "Solo Online", "Tienda Física"],
-    "Gourmet":         ["Online + Tienda", "Solo Online", "Tienda Física"],
-    "Mayorista":       ["Online + Tienda", "Solo Online", "Tienda Física"],
-    "Orgánico":        ["Online + Tienda", "Solo Online", "Tienda Física"],
+    "Formato Grande":  ["Online + Tienda", "Solo Online", "Tienda Fisica"],
+    "Formato Mediano": ["Online + Tienda", "Solo Online", "Tienda Fisica"],
+    "Gourmet":         ["Online + Tienda", "Solo Online", "Tienda Fisica"],
+    "Mayorista":       ["Online + Tienda", "Solo Online", "Tienda Fisica"],
+    "Organico":        ["Online + Tienda", "Solo Online", "Tienda Fisica"],
   },
 };
 
-function initials(nombre: string) {
-  const parts = nombre.trim().split(/\s+/);
+
+
+function initials(val?: string | null) {
+  if (!val) return "?";
+  const parts = val.trim().split(/\s+/);
+
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
@@ -205,7 +210,7 @@ export default function AdminClientesPage() {
   const filtered = useMemo(() => {
     const q = buscar.toLowerCase();
     return clientes.filter((c) => {
-      const matchQ = !q || c.nombre.toLowerCase().includes(q) || (c.ruc ?? "").includes(q);
+      const matchQ = !q || c.cliente_id.toLowerCase().includes(q) || false;
       const matchSede = sedeFilter === "Todas" || c.sede_cliente === sedeFilter;
       return matchQ && matchSede;
     });
@@ -253,7 +258,7 @@ export default function AdminClientesPage() {
     setSuccessAsignar("");
     setForm({
       cliente_id: c.cliente_id,
-      nombre: c.nombre,
+      // nombre removed from API
       ruc: c.ruc ?? "",
       rubro_cliente: c.rubro_cliente,
       subrubro_1: c.subrubro_1 ?? "",
@@ -278,7 +283,7 @@ export default function AdminClientesPage() {
     try {
       const nuevo = await api.clientes.create({
         cliente_id: form.cliente_id,
-        nombre: form.nombre,
+        // nombre removed
         ruc: form.ruc || undefined,
         rubro_cliente: form.rubro_cliente,
         subrubro_1: form.subrubro_1 || undefined,
@@ -286,7 +291,7 @@ export default function AdminClientesPage() {
         sede_cliente: form.sede_cliente,
       });
       setClientes((prev) => [nuevo, ...prev]);
-      showSuccess(`Cliente "${nuevo.nombre}" creado correctamente.`);
+      showSuccess(`Cliente "${nuevo.cliente_id}" creado correctamente.`);
       volver();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al crear cliente");
@@ -302,7 +307,7 @@ export default function AdminClientesPage() {
     setSaving(true);
     try {
       const actualizado = await api.clientes.update(clienteEditando.cliente_id, {
-        nombre: form.nombre,
+        // nombre removed
         ruc: form.ruc || undefined,
         rubro_cliente: form.rubro_cliente,
         subrubro_1: form.subrubro_1 || undefined,
@@ -313,7 +318,7 @@ export default function AdminClientesPage() {
       setClientes((prev) =>
         prev.map((c) => (c.cliente_id === clienteEditando.cliente_id ? { ...c, ...actualizado } : c))
       );
-      showSuccess(`Cliente "${actualizado.nombre}" actualizado correctamente.`);
+      showSuccess(`Cliente "${actualizado.cliente_id}" actualizado correctamente.`);
       volver();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al actualizar cliente");
@@ -324,7 +329,7 @@ export default function AdminClientesPage() {
 
   async function handleEliminar() {
     if (!clienteEditando) return;
-    if (!confirm(`¿Eliminar al cliente "${clienteEditando.nombre}"? Esta acción lo marcará como inactivo.`)) return;
+    if (!confirm(`¿Eliminar al cliente "${clienteEditando?.cliente_id}"? Esta acción lo marcará como inactivo.`)) return;
     setSaving(true);
     try {
       await api.clientes.update(clienteEditando.cliente_id, { activo: false });
@@ -540,9 +545,9 @@ export default function AdminClientesPage() {
                     className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg mb-2"
                     style={{ backgroundColor: avatarColor(clienteEditando.cliente_id) }}
                   >
-                    {initials(clienteEditando.nombre)}
+                    {initials(clienteEditando?.cliente_id)}
                   </div>
-                  <p className="font-semibold text-gray-900">{clienteEditando.nombre}</p>
+                  <p className="font-semibold text-gray-900">{clienteEditando?.cliente_id}</p>
                   <p className="text-xs text-gray-400 mt-1">
                     {clienteEditando.sede_cliente}
                   </p>
@@ -690,9 +695,9 @@ export default function AdminClientesPage() {
                           className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
                           style={{ backgroundColor: avatarColor(c.cliente_id) }}
                         >
-                          {initials(c.nombre)}
+                          {initials(c.cliente_id)}
                         </div>
-                        <p className="font-medium text-gray-900">{c.nombre}</p>
+                        <p className="font-medium text-gray-900">{c.cliente_id}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{c.ruc ?? "—"}</td>

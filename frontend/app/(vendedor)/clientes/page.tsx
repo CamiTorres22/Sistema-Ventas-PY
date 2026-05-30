@@ -19,8 +19,9 @@ function formatDate(s: string) {
   });
 }
 
-function initials(nombre: string) {
-  const parts = nombre.trim().split(/\s+/);
+function initials(val?: string | null) {
+  if (!val) return "?";
+  const parts = val.trim().split(/\s+/);
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
@@ -61,7 +62,7 @@ export default function ClientesPage() {
     const map: Record<string, PedidoResumen> = {};
     for (const p of pedidos) {
       const prev = map[p.cliente_id];
-      if (!prev || p.creado_en > prev.creado_en) map[p.cliente_id] = p;
+      if (!prev || p.fecha_venta > prev.creado_en) map[p.cliente_id] = p;
     }
     return map;
   }, [pedidos]);
@@ -69,7 +70,7 @@ export default function ClientesPage() {
   const filtered = useMemo(() => {
     const q = buscar.toLowerCase();
     return clientes.filter((c) => {
-      const matchQ = !q || c.nombre.toLowerCase().includes(q) || (c.ruc ?? "").includes(q);
+      const matchQ = !q || c.cliente_id.toLowerCase().includes(q) || false;
       const matchSede = !sedeFilter || c.sede_cliente === sedeFilter;
       return matchQ && matchSede;
     });
@@ -119,7 +120,7 @@ export default function ClientesPage() {
           style={{ backgroundColor: "#3B5BDB" }}
         >
           {seleccionado
-            ? `+ Nuevo Pedido — ${clientes.find(c => c.cliente_id === seleccionado)?.nombre ?? ""}`
+            ? `+ Nuevo Pedido — ${clientes.find(c => c.cliente_id === seleccionado)?.cliente_id ?? ""}`
             : "+ Nuevo Pedido"}
         </button>
       </div>
@@ -167,10 +168,10 @@ export default function ClientesPage() {
                             className="w-9 h-9 rounded-full flex items-center justify-center font-semibold text-white text-xs flex-shrink-0"
                             style={{ backgroundColor: color }}
                           >
-                            {initials(c.nombre)}
+                            {initials(c.cliente_id)}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{c.nombre}</p>
+                            <p className="font-medium text-gray-900">{c.cliente_id}</p>
                             <p className="text-xs text-gray-400">{c.rubro_cliente}</p>
                           </div>
                         </div>
@@ -199,7 +200,7 @@ export default function ClientesPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               router.push(
-                                `/historial?cliente=${c.cliente_id}&nombre=${encodeURIComponent(c.nombre)}`
+                                `/historial?cliente=${c.cliente_id}&nombre=${encodeURIComponent(c.cliente_id)}`
                               );
                             }}
                             className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"

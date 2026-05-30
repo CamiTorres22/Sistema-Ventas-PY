@@ -28,7 +28,7 @@ async def listar_vendedores(
     _admin: Usuario      = Depends(require_admin),
 ):
     result = await db.execute(
-        select(Usuario).where(Usuario.rol == "vendedor").order_by(Usuario.nombre)
+        select(Usuario).where(Usuario.rol == "vendedor").order_by(Usuario.id)
     )
     return result.scalars().all()
 
@@ -93,6 +93,6 @@ async def cartera_vendedor(
         .join(ClienteVendedor, ClienteVendedor.cliente_id == Cliente.cliente_id)
         .where(ClienteVendedor.vendedor_id == vendedor_id)
         .where(ClienteVendedor.activo == True)
-        .order_by(Cliente.nombre)
+        .order_by(Cliente.cliente_id)
     )
     return result.scalars().all()

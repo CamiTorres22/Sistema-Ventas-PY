@@ -57,7 +57,7 @@ function ModalStock({
         <div className="bg-gray-50 rounded-xl px-4 py-3 mb-5 flex items-center gap-3">
           <Package size={18} className="text-gray-400 flex-shrink-0" />
           <div>
-            <p className="font-semibold text-gray-900 text-sm">{producto.nombre}</p>
+            <p className="font-semibold text-gray-900 text-sm">{producto.producto_id}</p>
             <p className="text-xs text-gray-400">{producto.producto_id} · Stock actual: {producto.stock} unidades</p>
           </div>
         </div>
@@ -139,7 +139,7 @@ function FormProducto({
   const esEditar = !!inicial;
   const [form, setForm] = useState({
     producto_id: inicial?.producto_id ?? "",
-    nombre: inicial?.nombre ?? "",
+    // nombre removed,
     categoria_producto: inicial?.categoria_producto ?? "Lácteos",
     precio_unitario: inicial?.precio_unitario?.toString() ?? "",
     costo_unitario: inicial?.costo_unitario?.toString() ?? "",
@@ -159,7 +159,7 @@ function FormProducto({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!form.producto_id || !form.nombre || !form.precio_unitario || !form.costo_unitario) {
+    if (!form.producto_id || !form.precio_unitario || !form.costo_unitario) {
       setError("Completa los campos obligatorios.");
       return;
     }
@@ -168,7 +168,7 @@ function FormProducto({
       let result: Producto;
       if (esEditar) {
         result = await api.productos.update(form.producto_id, {
-          nombre: form.nombre,
+          // nombre removed
           categoria_producto: form.categoria_producto,
           precio_unitario: Number(form.precio_unitario),
           costo_unitario: Number(form.costo_unitario),
@@ -179,7 +179,7 @@ function FormProducto({
       } else {
         result = await api.productos.create({
           producto_id: form.producto_id,
-          nombre: form.nombre,
+          // nombre removed
           categoria_producto: form.categoria_producto,
           precio_unitario: Number(form.precio_unitario),
           costo_unitario: Number(form.costo_unitario),
@@ -359,7 +359,7 @@ export default function AdminProductosPage() {
 
   const filtered = productos.filter((p) => {
     const q = buscar.toLowerCase();
-    const matchQ = !q || p.nombre.toLowerCase().includes(q) || p.producto_id.toLowerCase().includes(q);
+    const matchQ = !q || p.producto_id.toLowerCase().includes(q) || p.producto_id.toLowerCase().includes(q);
     const matchCat = categoria === "Todas" || p.categoria_producto === categoria;
     return matchQ && matchCat;
   });
@@ -465,7 +465,7 @@ export default function AdminProductosPage() {
                 return (
                   <tr key={p.producto_id} className="hover:bg-gray-50">
                     <td className="px-5 py-3">
-                      <p className="font-medium text-gray-900 line-clamp-1">{p.nombre}</p>
+                      <p className="font-medium text-gray-900 line-clamp-1">{p.producto_id}</p>
                       <div className="flex gap-1 mt-0.5 flex-wrap">
                         {proxVencer && (
                           <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-red-100 text-red-600">PROX. VENCER</span>

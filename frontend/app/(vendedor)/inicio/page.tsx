@@ -52,10 +52,10 @@ export default function InicioPage() {
 
   const now = new Date();
   const pedidosMes = pedidos.filter((p) => {
-    const d = new Date(p.creado_en);
+    const d = new Date(p.fecha_venta);
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
-  const ventasMes = pedidosMes.reduce((acc, p) => acc + p.total, 0);
+  const ventasMes = pedidosMes.reduce((acc, p) => acc + p.monto_total, 0);
   const recientes = pedidos.slice(0, 7);
 
   return (
@@ -111,11 +111,11 @@ export default function InicioPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {recientes.map((p) => {
-                const e = estadoConfig[p.estado] ?? { bg: "#F1F3F5", text: "#495057", label: p.estado };
+                const e = estadoConfig["entregado"] ?? { bg: "#F1F3F5", text: "#495057", label: "entregado" };
                 return (
-                  <tr key={p.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium text-gray-900">{p.nombre_cliente}</td>
-                    <td className="px-4 py-4 text-gray-500">{formatDate(p.creado_en)}</td>
+                  <tr key={p.venta_id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 font-medium text-gray-900">{p.cliente_id}</td>
+                    <td className="px-4 py-4 text-gray-500">{formatDate(p.fecha_venta)}</td>
                     <td className="px-4 py-4 text-right font-semibold text-gray-900">{formatCurrency(p.total)}</td>
                     <td className="px-6 py-4 text-right">
                       <span

@@ -79,7 +79,7 @@ export default function AdminVendedoresPage() {
     setSaving(true);
     try {
       const nuevo = await api.vendedores.create({
-        nombre: form.nombre,
+        // nombre removed
         email: form.email,
         password: form.password,
         rol: "vendedor",
@@ -102,7 +102,7 @@ export default function AdminVendedoresPage() {
     setSaving(true);
     try {
       const actualizado = await api.vendedores.update(vendedorEditando.id, {
-        nombre: form.nombre,
+        // nombre removed
         email: form.email,
         zona: form.zona || undefined,
       });
@@ -372,10 +372,10 @@ export default function AdminVendedoresPage() {
                               className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
                               style={{ backgroundColor: "#4c6ef5" }}
                             >
-                              {c.nombre.charAt(0)}
+                              {(c.cliente_id ?? "").charAt(0)}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-xs font-medium text-gray-900 truncate">{c.nombre}</p>
+                              <p className="text-xs font-medium text-gray-900 truncate">{c.cliente_id}</p>
                               <p className="text-xs text-gray-400">{c.sede_cliente} · {c.rubro_cliente}</p>
                             </div>
                           </div>

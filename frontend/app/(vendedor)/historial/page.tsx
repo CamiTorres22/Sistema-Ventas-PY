@@ -39,12 +39,12 @@ const POR_PAGINA = 7;
 function exportCSV(pedidos: PedidoResumen[]) {
   const headers = ["N° Pedido", "Cliente", "Fecha", "Productos", "Total", "Estado"];
   const rows = pedidos.map((p) => [
-    p.numero,
-    `"${p.nombre_cliente}"`,
-    formatDate(p.creado_en),
-    `${p.n_productos} productos`,
+    p.venta_id,
+    `"${p.cliente_id}"`,
+    formatDate(p.fecha_venta),
+    `${p.n_produtos} productos`,
     p.total.toFixed(2),
-    ESTADO_CONFIG[p.estado]?.label ?? p.estado,
+    ESTADO_CONFIG["entregado"]?.label ?? "entregado",
   ]);
   const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
@@ -91,9 +91,9 @@ function HistorialContent() {
     const dias = PERIODOS[periodoIdx].days;
     const desde = dias > 0 ? Date.now() - dias * 86400000 : 0;
     return pedidos.filter((p) => {
-      const matchQ      = !q || p.nombre_cliente.toLowerCase().includes(q) || p.numero.toLowerCase().includes(q);
-      const matchEstado = estadoFilter === "todos" || p.estado === estadoFilter;
-      const matchPeriodo = dias === 0 || new Date(p.creado_en).getTime() >= desde;
+      const matchQ      = !q || p.cliente_id.toLowerCase().includes(q) || p.venta_id.toLowerCase().includes(q);
+      const matchEstado = estadoFilter === "todos" || "entregado" === estadoFilter;
+      const matchPeriodo = dias === 0 || new Date(p.fecha_venta).getTime() >= desde;
       return matchQ && matchEstado && matchPeriodo;
     });
   }, [pedidos, buscar, estadoFilter, periodoIdx]);
@@ -181,21 +181,21 @@ function HistorialContent() {
                 </tr>
               ) : (
                 paginados.map((p) => {
-                  const e = ESTADO_CONFIG[p.estado] ?? { bg: "#F1F3F5", text: "#495057", label: p.estado };
+                  const e = ESTADO_CONFIG["entregado"] ?? { bg: "#F1F3F5", text: "#495057", label: "entregado" };
                   return (
-                    <tr key={p.id} className="hover:bg-gray-50">
+                    <tr key={p.venta_id} className="hover:bg-gray-50">
                       <td className="px-5 py-3">
                         <Link
-                          href={`/historial/${p.id}`}
+                          href={`/historial/${p.venta_id}`}
                           className="font-medium"
                           style={{ color: "#3B5BDB" }}
                         >
-                          {p.numero}
+                          {p.venta_id}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-gray-700">{p.nombre_cliente}</td>
-                      <td className="px-4 py-3 text-gray-500">{formatDate(p.creado_en)}</td>
-                      <td className="px-4 py-3 text-gray-500">{p.n_productos} productos</td>
+                      <td className="px-4 py-3 text-gray-700">{p.cliente_id}</td>
+                      <td className="px-4 py-3 text-gray-500">{formatDate(p.fecha_venta)}</td>
+                      <td className="px-4 py-3 text-gray-500">{p.n_produtos} productos</td>
                       <td className="px-4 py-3 text-right font-semibold text-gray-900">
                         {formatCurrency(p.total)}
                       </td>
@@ -209,7 +209,7 @@ function HistorialContent() {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <Link
-                          href={`/historial/${p.id}`}
+                          href={`/historial/${p.venta_id}`}
                           className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
                           style={{ backgroundColor: "#3B5BDB" }}
                         >

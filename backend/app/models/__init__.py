@@ -1,6 +1,3 @@
-from .db_models import Cliente, ClienteVendedor, DetallePedido, LoginLog, Pedido, Producto, Usuario
+from .db_models import Cliente, ClienteVendedor, DetalleVenta, LoginLog, Prediccion, Producto, Usuario, Venta
 
-__all__ = [
-    "Usuario", "Cliente", "ClienteVendedor",
-    "Producto", "Pedido", "DetallePedido", "LoginLog",
-]
+__all__ = ["Usuario", "Cliente", "ClienteVendedor", "Producto", "Venta", "DetalleVenta", "LoginLog", "Prediccion"]

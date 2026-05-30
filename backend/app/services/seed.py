@@ -92,35 +92,47 @@ async def seed_clientes(db: AsyncSession) -> None:
 
 
 async def seed_productos(db: AsyncSession) -> None:
-    """Importa productos desde dataset_ml.csv (un producto único por producto_id)."""
+    """Importa productos desde dataset_ml.csv o productos.csv (fallback)."""
     count = (await db.execute(select(Producto))).scalars().first()
     if count:
         logger.info("  Productos ya cargados, saltando.")
         return
 
-    # Usar dataset_ml.csv para obtener los campos calculados (rotacion, baja_rotacion, etc.)
-    ds_path = PROC_DIR / "dataset_ml.csv"
-    if not ds_path.exists():
-        logger.warning("  dataset_ml.csv no encontrado en %s", PROC_DIR)
-        return
+    ds_path  = PROC_DIR / "dataset_ml.csv"
+    raw_path = RAW_DIR  / "productos.csv"
 
-    df = pd.read_csv(
-        ds_path,
-        parse_dates=["fecha_ingreso_catalogo", "fecha_min_caducidad"],
-        usecols=[
-            "producto_id", "categoria_producto", "precio_unitario", "COSTO_UNITARIO",
-            "stock", "dias_en_stock", "sede",
-            "fecha_ingreso_catalogo", "fecha_min_caducidad",
-            "rotacion_diaria", "baja_rotacion",
-        ],
-    )
-    # Un producto por sede (mayor stock)
-    df = df.sort_values("stock", ascending=False).drop_duplicates("producto_id", keep="first")
+    if ds_path.exists():
+        df = pd.read_csv(
+            ds_path,
+            parse_dates=["fecha_ingreso_catalogo", "fecha_min_caducidad"],
+            usecols=[
+                "producto_id", "categoria_producto", "precio_unitario", "COSTO_UNITARIO",
+                "stock", "dias_en_stock", "sede",
+                "fecha_ingreso_catalogo", "fecha_min_caducidad",
+                "rotacion_diaria", "baja_rotacion",
+            ],
+        )
+        df = df.sort_values("stock", ascending=False).drop_duplicates("producto_id", keep="first")
+        source = "dataset_ml.csv"
+    elif raw_path.exists():
+        df = pd.read_csv(
+            raw_path,
+            parse_dates=["fecha_ingreso_catalogo", "fecha_min_caducidad"],
+        )
+        # Un producto por id (mayor stock entre sedes)
+        df = df.sort_values("stock", ascending=False).drop_duplicates("producto_id", keep="first")
+        df["COSTO_UNITARIO"] = df.get("COSTO_UNITARIO", df["precio_unitario"] * 0.6)
+        df["rotacion_diaria"] = 0.0
+        df["baja_rotacion"]   = 0
+        source = "productos.csv"
+    else:
+        logger.warning("  No se encontro dataset_ml.csv ni productos.csv.")
+        return
 
     for _, row in df.iterrows():
         prod = Producto(
             producto_id=str(row["producto_id"]),
-            nombre=str(row["producto_id"]),       # placeholder hasta tener nombre real
+            nombre=str(row["producto_id"]),
             categoria_producto=str(row["categoria_producto"]),
             precio_unitario=float(row["precio_unitario"]),
             costo_unitario=float(row["COSTO_UNITARIO"]),
@@ -141,7 +153,7 @@ async def seed_productos(db: AsyncSession) -> None:
         db.add(prod)
 
     await db.commit()
-    logger.info("  Productos importados: %d", len(df))
+    logger.info("  Productos importados: %d (fuente: %s)", len(df), source)
 
 
 async def seed_asignaciones(db: AsyncSession, user_ids: dict[str, int]) -> None:
