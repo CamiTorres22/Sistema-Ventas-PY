@@ -64,10 +64,11 @@ function ModalStock({
 
         {/* Cantidad */}
         <p className="text-sm font-medium text-gray-700 mb-2">Cantidad a agregar *</p>
-        <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden mb-4">
+        <div className="flex items-center mb-4">
           <button
             onClick={() => setCantidad((q) => Math.max(0, q - 1))}
-            className="px-5 py-3 text-xl text-gray-500 hover:bg-gray-50 font-bold"
+            className="px-5 py-3 text-xl text-white font-bold rounded-l-xl flex-shrink-0"
+            style={{ backgroundColor: "#3B5BDB" }}
           >
             −
           </button>
@@ -76,11 +77,11 @@ function ModalStock({
             min={0}
             value={cantidad}
             onChange={(e) => setCantidad(Math.max(0, Number(e.target.value)))}
-            className="flex-1 text-center text-2xl font-bold text-gray-900 focus:outline-none py-3 bg-white"
+            className="flex-1 text-center text-2xl font-bold text-gray-900 focus:outline-none py-3 bg-white border-t border-b border-gray-200 min-w-0"
           />
           <button
             onClick={() => setCantidad((q) => q + 1)}
-            className="px-5 py-3 text-xl text-white font-bold"
+            className="px-5 py-3 text-xl text-white font-bold rounded-r-xl flex-shrink-0"
             style={{ backgroundColor: "#3B5BDB" }}
           >
             +

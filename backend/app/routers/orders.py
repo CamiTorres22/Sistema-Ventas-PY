@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from backend.app.database import get_db
-from backend.app.models import Cliente, DetallePedido, Pedido, Producto, Usuario
+from backend.app.models import Cliente, ClienteVendedor, DetallePedido, Pedido, Producto, Usuario
 from backend.app.routers.auth import get_current_user, require_admin
 from backend.app.schemas import PedidoCreate, PedidoOut, PedidoResumen
 
@@ -134,14 +134,17 @@ async def listar_pedidos(
     q = select(Pedido).options(selectinload(Pedido.detalles), selectinload(Pedido.cliente))
 
     if user.rol != "admin":
+        # Obtener los cliente_ids asignados a este vendedor
+        cartera = select(ClienteVendedor.cliente_id).where(
+            ClienteVendedor.vendedor_id == user.id,
+            ClienteVendedor.activo == True,
+        )
+        # Mostrar todos los pedidos de sus clientes asignados (trazabilidad completa)
+        # incluyendo pedidos históricos sin vendedor o hechos por otros vendedores
         if cliente_id:
-            # Al filtrar por cliente, incluye pedidos propios Y pedidos históricos
-            # (vendedor_id=NULL) para que el vendedor vea el historial completo del cliente
-            q = q.where(
-                (Pedido.vendedor_id == user.id) | (Pedido.vendedor_id == None)
-            )
+            pass  # el filtro por cliente_id ya restringe abajo
         else:
-            q = q.where(Pedido.vendedor_id == user.id)
+            q = q.where(Pedido.cliente_id.in_(cartera))
     if estado:
         q = q.where(Pedido.estado == estado)
     if cliente_id:

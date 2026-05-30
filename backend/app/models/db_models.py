@@ -30,6 +30,7 @@ class Usuario(Base):
     email:          Mapped[str]  = mapped_column(String(150), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String(200), nullable=False)
     rol:            Mapped[str]  = mapped_column(String(20), nullable=False)  # "vendedor" | "admin"
+    zona:           Mapped[str | None] = mapped_column(String(30))
     activo:         Mapped[bool] = mapped_column(Boolean, default=True)
     creado_en:      Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 

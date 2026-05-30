@@ -14,9 +14,7 @@ const FORM_INICIAL = {
   nombre: "",
   email: "",
   password: "",
-  telefono: "",
-  sede: "",
-  notas: "",
+  zona: "",
 };
 
 export default function AdminVendedoresPage() {
@@ -64,7 +62,7 @@ export default function AdminVendedoresPage() {
 
   function abrirEditar(v: VendedorOut) {
     setVendedorEditando(v);
-    setForm({ nombre: v.nombre, email: v.email, password: "", telefono: "", sede: "", notas: "" });
+    setForm({ nombre: v.nombre, email: v.email, password: "", zona: v.zona ?? "" });
     setError("");
     setView("editar");
   }
@@ -85,6 +83,7 @@ export default function AdminVendedoresPage() {
         email: form.email,
         password: form.password,
         rol: "vendedor",
+        zona: form.zona || undefined,
       });
       setVendedores((prev) => [...prev, nuevo]);
       showSuccessMsg(`Vendedor "${nuevo.nombre}" registrado correctamente.`);
@@ -105,6 +104,7 @@ export default function AdminVendedoresPage() {
       const actualizado = await api.vendedores.update(vendedorEditando.id, {
         nombre: form.nombre,
         email: form.email,
+        zona: form.zona || undefined,
       });
       setVendedores((prev) =>
         prev.map((v) => (v.id === vendedorEditando.id ? { ...v, ...actualizado } : v))
@@ -199,27 +199,14 @@ export default function AdminVendedoresPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Teléfono <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.telefono}
-                  onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-                  placeholder="555-1234"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Zona / Sede <span className="text-red-500">*</span>
+                  Zona
                 </label>
                 <select
-                  value={form.sede}
-                  onChange={(e) => setForm({ ...form, sede: e.target.value })}
+                  value={form.zona}
+                  onChange={(e) => setForm({ ...form, zona: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 >
-                  <option value="">Seleccionar zona...</option>
+                  <option value="">— Sin zona asignada —</option>
                   {SEDES.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </div>
@@ -248,19 +235,6 @@ export default function AdminVendedoresPage() {
                   </div>
                 </div>
               )}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Notas adicionales <span className="text-xs text-gray-400">(opcional)</span>
-                </label>
-                <textarea
-                  rows={3}
-                  value={form.notas}
-                  onChange={(e) => setForm({ ...form, notas: e.target.value })}
-                  placeholder="Observaciones, zona de cobertura..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                />
-              </div>
 
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">

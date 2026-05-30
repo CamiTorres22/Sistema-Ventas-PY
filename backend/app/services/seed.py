@@ -33,11 +33,11 @@ PROC_DIR = ROOT_DIR / "data" / "processed"
 async def seed_usuarios(db: AsyncSession) -> dict[str, int]:
     """Crea usuarios de ejemplo si no existen. Devuelve {email: id}."""
     usuarios = [
-        {"nombre": "Maria Andrade",  "email": "admin@ico.com",    "password": "admin123",   "rol": "admin"},
-        {"nombre": "Juan Ramirez",   "email": "juan@ico.com",     "password": "vend123",    "rol": "vendedor"},
-        {"nombre": "Sofia Paredes",  "email": "sofia@ico.com",    "password": "vend123",    "rol": "vendedor"},
-        {"nombre": "Carlos Ruiz",    "email": "carlos@ico.com",   "password": "vend123",    "rol": "vendedor"},
-        {"nombre": "Ana Flores",     "email": "ana@ico.com",      "password": "vend123",    "rol": "vendedor"},
+        {"nombre": "Maria Andrade",  "email": "admin@ico.com",    "password": "admin123",   "rol": "admin",     "zona": None},
+        {"nombre": "Juan Ramirez",   "email": "juan@ico.com",     "password": "vend123",    "rol": "vendedor",  "zona": "Lima"},
+        {"nombre": "Sofia Paredes",  "email": "sofia@ico.com",    "password": "vend123",    "rol": "vendedor",  "zona": "Arequipa"},
+        {"nombre": "Carlos Ruiz",    "email": "carlos@ico.com",   "password": "vend123",    "rol": "vendedor",  "zona": "Piura"},
+        {"nombre": "Ana Flores",     "email": "ana@ico.com",      "password": "vend123",    "rol": "vendedor",  "zona": "Cusco"},
     ]
     ids = {}
     for u_data in usuarios:
@@ -49,6 +49,7 @@ async def seed_usuarios(db: AsyncSession) -> dict[str, int]:
                 email=u_data["email"],
                 hashed_password=hash_password(u_data["password"]),
                 rol=u_data["rol"],
+                zona=u_data["zona"],
             )
             db.add(user)
             await db.flush()

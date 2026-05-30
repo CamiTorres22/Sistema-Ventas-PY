@@ -1,12 +1,11 @@
 """
 model.py — Arquitectura NCF (Neural Collaborative Filtering)
 
-Implementa el modelo NCF completo según He et al. (2017):
+Implementa el modelo NCF :
   - GMF path: captura interacciones lineales (equivalente a MF clásico)
   - MLP path: captura interacciones no lineales mediante capas densas
   - Fusión: concatenación GMF[64] + MLP[32] → Dense(1) + Sigmoid
 
-Referencia: He, X. et al. "Neural Collaborative Filtering." WWW 2017.
 """
 
 import torch

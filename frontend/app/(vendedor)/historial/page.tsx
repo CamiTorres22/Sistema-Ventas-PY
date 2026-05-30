@@ -75,7 +75,7 @@ function HistorialContent() {
   const [loading, setLoading]       = useState(true);
   const [buscar, setBuscar]         = useState(clienteNombreParam ?? "");
   const [estadoFilter, setEstado]   = useState("todos");
-  const [periodoIdx, setPeriodo]    = useState(0);
+  const [periodoIdx, setPeriodo]    = useState(3);
   const [pagina, setPagina]         = useState(0);
 
   useEffect(() => {

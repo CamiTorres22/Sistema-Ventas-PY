@@ -47,7 +47,7 @@ export default function ClientesPage() {
       .then(setClientes)
       .catch(() => {})
       .finally(() => setLoading(false));
-    api.pedidos.list({ limit: 100 })
+    api.pedidos.list({ limit: 1000 })
       .then(setPedidos)
       .catch(() => {});
   }, [vendedorId]);

@@ -123,9 +123,9 @@ async def agregar_stock(
     producto_id: str,
     data:   StockUpdate,
     db:     AsyncSession = Depends(get_db),
-    _admin: Usuario      = Depends(require_admin),
+    _user:  Usuario      = Depends(get_current_user),
 ):
-    """Incrementa el stock disponible de un producto. Solo administradores."""
+    """Incrementa el stock disponible de un producto."""
     result = await db.execute(
         select(Producto).where(Producto.producto_id == producto_id)
     )

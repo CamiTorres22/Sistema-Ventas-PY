@@ -26,6 +26,7 @@ export interface VendedorOut {
   nombre: string;
   email: string;
   rol: "vendedor" | "admin";
+  zona: string | null;
   activo: boolean;
 }
 

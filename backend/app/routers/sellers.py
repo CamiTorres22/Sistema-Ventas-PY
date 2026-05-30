@@ -49,6 +49,7 @@ async def crear_vendedor(
         email=data.email,
         hashed_password=hash_password(data.password),
         rol=data.rol,
+        zona=data.zona,
     )
     db.add(user)
     await db.commit()

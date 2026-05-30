@@ -9,9 +9,120 @@ type View = "list" | "agregar" | "editar";
 
 const SEDES = ["Lima", "Arequipa", "Piura", "Cusco"];
 const RUBROS = [
-  "Restaurante", "Hotel", "Bar", "Cafetería", "Bodega",
-  "Supermercado", "Catering", "Panadería", "Otro",
+  "Bar", "Bodega", "Cafetería", "Catering", "Farmacia", "Fast Food",
+  "Ferretería", "Hotel", "Minimarket", "Panadería", "Restaurante", "Supermercado",
 ];
+
+const SUBRUBROS: Record<string, string[]> = {
+  "Bar":          ["Cervecería", "Cocteles", "Karaoke", "Lounge", "Pub", "Sports Bar", "Vinos"],
+  "Bodega":       ["Abarrotes", "Barrio", "Licorera", "Mayorista", "Mixta"],
+  "Cafetería":    ["Especialidad", "Moderna", "Saludable", "Temática", "Tradicional"],
+  "Catering":     ["Escolar", "Eventos Corporativos", "Industrial", "Matrimonios", "Social"],
+  "Farmacia":     ["Cadena", "Homeopática", "Independiente", "Naturista"],
+  "Fast Food":    ["Árabe", "Hamburguesas", "Pizza", "Pollo", "Sándwiches", "Tacos", "Wraps"],
+  "Ferretería":   ["Especializada", "General", "Industrial", "Mayorista"],
+  "Hotel":        ["Apart-hotel", "Boutique", "Business", "Hostal", "Resort", "Turístico"],
+  "Minimarket":   ["24 Horas", "Barrio", "Express", "Gasolinera", "Universitario"],
+  "Panadería":    ["Artesanal", "Francesa", "Industrial", "Integral", "Pastelería", "Repostería"],
+  "Restaurante":  ["Buffet", "Carnes", "Chifa", "Criollo", "Fusión", "Italiano", "Japonés", "Marino", "Pollería", "Vegetariano"],
+  "Supermercado": ["Formato Grande", "Formato Mediano", "Gourmet", "Mayorista", "Orgánico"],
+};
+
+const SUBRUBROS_2: Record<string, Record<string, string[]>> = {
+  "Bar": {
+    "Cervecería": ["Presencial", "Presencial + Eventos", "Reservas"],
+    "Cocteles":   ["Presencial", "Presencial + Eventos", "Reservas"],
+    "Karaoke":    ["Presencial", "Presencial + Eventos", "Reservas"],
+    "Lounge":     ["Presencial", "Reservas"],
+    "Pub":        ["Presencial", "Presencial + Eventos", "Reservas"],
+    "Sports Bar": ["Presencial", "Presencial + Eventos"],
+    "Vinos":      ["Presencial", "Presencial + Eventos", "Reservas"],
+  },
+  "Bodega": {
+    "Abarrotes":  ["Autoservicio", "Mostrador", "Mostrador + Delivery"],
+    "Barrio":     ["Autoservicio", "Mostrador", "Mostrador + Delivery"],
+    "Licorera":   ["Autoservicio", "Mostrador", "Mostrador + Delivery"],
+    "Mayorista":  ["Autoservicio", "Mostrador", "Mostrador + Delivery"],
+    "Mixta":      ["Autoservicio", "Mostrador", "Mostrador + Delivery"],
+  },
+  "Cafetería": {
+    "Especialidad": ["Co-Working", "Para Llevar", "Salón", "Salón + Delivery"],
+    "Moderna":      ["Co-Working", "Para Llevar", "Salón", "Salón + Delivery"],
+    "Saludable":    ["Co-Working", "Salón", "Salón + Delivery"],
+    "Temática":     ["Co-Working", "Para Llevar", "Salón", "Salón + Delivery"],
+    "Tradicional":  ["Co-Working", "Para Llevar", "Salón", "Salón + Delivery"],
+  },
+  "Catering": {
+    "Escolar":              ["Mixto", "Off-Site", "On-Site"],
+    "Eventos Corporativos": ["Mixto", "Off-Site", "On-Site"],
+    "Industrial":           ["Mixto", "Off-Site", "On-Site"],
+    "Matrimonios":          ["Mixto", "Off-Site", "On-Site"],
+    "Social":               ["Mixto", "Off-Site", "On-Site"],
+  },
+  "Farmacia": {
+    "Cadena":        ["Autoservicio", "Drive-Thru", "Mostrador"],
+    "Homeopática":   ["Autoservicio", "Drive-Thru", "Mostrador"],
+    "Independiente": ["Autoservicio", "Drive-Thru", "Mostrador"],
+    "Naturista":     ["Autoservicio", "Drive-Thru", "Mostrador"],
+  },
+  "Fast Food": {
+    "Árabe":        ["Delivery"],
+    "Hamburguesas": ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery"],
+    "Pizza":        ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery", "Solo Delivery"],
+    "Pollo":        ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery"],
+    "Sándwiches":   ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery", "Solo Delivery"],
+    "Tacos":        ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery", "Solo Delivery"],
+    "Wraps":        ["Delivery", "Drive-Thru", "Salón", "Salón + Delivery"],
+  },
+  "Ferretería": {
+    "Especializada": ["Autoservicio", "Catálogo Online", "Mostrador"],
+    "General":       ["Autoservicio", "Catálogo Online", "Mostrador"],
+    "Industrial":    ["Autoservicio", "Catálogo Online", "Mostrador"],
+    "Mayorista":     ["Autoservicio", "Catálogo Online", "Mostrador"],
+  },
+  "Hotel": {
+    "Apart-hotel": ["Restaurante Propio", "Todo Incluido"],
+    "Boutique":    ["Desayuno Incluido", "Restaurante Propio", "Solo Alojamiento", "Todo Incluido"],
+    "Business":    ["Desayuno Incluido", "Restaurante Propio", "Solo Alojamiento", "Todo Incluido"],
+    "Hostal":      ["Desayuno Incluido", "Restaurante Propio", "Solo Alojamiento"],
+    "Resort":      ["Desayuno Incluido", "Restaurante Propio", "Solo Alojamiento", "Todo Incluido"],
+    "Turístico":   ["Restaurante Propio", "Solo Alojamiento", "Todo Incluido"],
+  },
+  "Minimarket": {
+    "24 Horas":     ["24 Horas", "Tienda + Delivery", "Tienda Física"],
+    "Barrio":       ["24 Horas", "Tienda + Delivery", "Tienda Física"],
+    "Express":      ["24 Horas", "Tienda + Delivery", "Tienda Física"],
+    "Gasolinera":   ["24 Horas", "Tienda + Delivery", "Tienda Física"],
+    "Universitario":["24 Horas", "Tienda + Delivery", "Tienda Física"],
+  },
+  "Panadería": {
+    "Artesanal":  ["Distribución", "Local + Distribución", "Local Propio"],
+    "Francesa":   ["Distribución", "Local + Distribución", "Local Propio"],
+    "Industrial": ["Distribución", "Local + Distribución", "Local Propio"],
+    "Integral":   ["Distribución", "Local + Distribución", "Local Propio"],
+    "Pastelería": ["Distribución", "Local + Distribución", "Local Propio"],
+    "Repostería": ["Distribución"],
+  },
+  "Restaurante": {
+    "Buffet":      ["Dark Kitchen", "Para Llevar", "Salón"],
+    "Carnes":      ["Dark Kitchen", "Delivery", "Delivery + Salón", "Salón"],
+    "Chifa":       ["Dark Kitchen", "Delivery", "Para Llevar", "Salón"],
+    "Criollo":     ["Dark Kitchen", "Delivery", "Delivery + Salón"],
+    "Fusión":      ["Dark Kitchen", "Delivery", "Delivery + Salón", "Para Llevar", "Salón"],
+    "Italiano":    ["Delivery", "Delivery + Salón", "Para Llevar"],
+    "Japonés":     ["Dark Kitchen", "Delivery + Salón", "Para Llevar", "Salón"],
+    "Marino":      ["Dark Kitchen", "Delivery", "Delivery + Salón", "Para Llevar"],
+    "Pollería":    ["Delivery", "Delivery + Salón"],
+    "Vegetariano": ["Delivery", "Para Llevar"],
+  },
+  "Supermercado": {
+    "Formato Grande":  ["Online + Tienda", "Solo Online", "Tienda Física"],
+    "Formato Mediano": ["Online + Tienda", "Solo Online", "Tienda Física"],
+    "Gourmet":         ["Online + Tienda", "Solo Online", "Tienda Física"],
+    "Mayorista":       ["Online + Tienda", "Solo Online", "Tienda Física"],
+    "Orgánico":        ["Online + Tienda", "Solo Online", "Tienda Física"],
+  },
+};
 
 function initials(nombre: string) {
   const parts = nombre.trim().split(/\s+/);
@@ -42,6 +153,8 @@ const FORM_INICIAL = {
   nombre: "",
   ruc: "",
   rubro_cliente: "Restaurante",
+  subrubro_1: "",
+  subrubro_2: "",
   sede_cliente: "Lima",
   activo: true,
 };
@@ -143,6 +256,8 @@ export default function AdminClientesPage() {
       nombre: c.nombre,
       ruc: c.ruc ?? "",
       rubro_cliente: c.rubro_cliente,
+      subrubro_1: c.subrubro_1 ?? "",
+      subrubro_2: c.subrubro_2 ?? "",
       sede_cliente: c.sede_cliente,
       activo: c.activo,
     });
@@ -166,6 +281,8 @@ export default function AdminClientesPage() {
         nombre: form.nombre,
         ruc: form.ruc || undefined,
         rubro_cliente: form.rubro_cliente,
+        subrubro_1: form.subrubro_1 || undefined,
+        subrubro_2: form.subrubro_2 || undefined,
         sede_cliente: form.sede_cliente,
       });
       setClientes((prev) => [nuevo, ...prev]);
@@ -188,6 +305,8 @@ export default function AdminClientesPage() {
         nombre: form.nombre,
         ruc: form.ruc || undefined,
         rubro_cliente: form.rubro_cliente,
+        subrubro_1: form.subrubro_1 || undefined,
+        subrubro_2: form.subrubro_2 || undefined,
         sede_cliente: form.sede_cliente,
         activo: form.activo,
       });
@@ -305,12 +424,44 @@ export default function AdminClientesPage() {
                 <select
                   required
                   value={form.rubro_cliente}
-                  onChange={(e) => setForm({ ...form, rubro_cliente: e.target.value })}
+                  onChange={(e) => setForm({ ...form, rubro_cliente: e.target.value, subrubro_1: "", subrubro_2: "" })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 >
                   {RUBROS.map((r) => <option key={r}>{r}</option>)}
                 </select>
               </div>
+
+              {(SUBRUBROS[form.rubro_cliente]?.length ?? 0) > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Subrubro 1
+                  </label>
+                  <select
+                    value={form.subrubro_1}
+                    onChange={(e) => setForm({ ...form, subrubro_1: e.target.value, subrubro_2: "" })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="">— Seleccionar —</option>
+                    {(SUBRUBROS[form.rubro_cliente] ?? []).map((s) => <option key={s}>{s}</option>)}
+                  </select>
+                </div>
+              )}
+
+              {form.subrubro_1 && (SUBRUBROS_2[form.rubro_cliente]?.[form.subrubro_1]?.length ?? 0) > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Subrubro 2
+                  </label>
+                  <select
+                    value={form.subrubro_2}
+                    onChange={(e) => setForm({ ...form, subrubro_2: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="">— Seleccionar —</option>
+                    {(SUBRUBROS_2[form.rubro_cliente]?.[form.subrubro_1] ?? []).map((s) => <option key={s}>{s}</option>)}
+                  </select>
+                </div>
+              )}
 
               {esEditar && (
                 <div>

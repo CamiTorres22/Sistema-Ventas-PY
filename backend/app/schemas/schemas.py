@@ -32,6 +32,7 @@ class UsuarioOut(BaseModel):
     nombre:    str
     email:     str
     rol:       str
+    zona:      Optional[str] = None
     activo:    bool
 
     model_config = {"from_attributes": True}
@@ -253,9 +254,11 @@ class VendedorCreate(BaseModel):
     email:    EmailStr
     password: str
     rol:      Literal["vendedor", "admin"] = "vendedor"
+    zona:     Optional[str] = None
 
 
 class VendedorUpdate(BaseModel):
     nombre:  Optional[str] = None
     email:   Optional[EmailStr] = None
+    zona:    Optional[str] = None
     activo:  Optional[bool] = None
