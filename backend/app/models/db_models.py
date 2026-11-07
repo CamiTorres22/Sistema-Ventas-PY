@@ -43,6 +43,7 @@ class Producto(Base):
     __tablename__ = "productos"
     producto_id:            Mapped[str]        = mapped_column(String(20), primary_key=True)
     sede:                   Mapped[str]        = mapped_column(String(30), primary_key=True)
+    nombre:                 Mapped[str | None] = mapped_column(String(100))
     categoria_producto:     Mapped[str]        = mapped_column(String(50), nullable=False)
     precio_unitario:        Mapped[float]      = mapped_column(Float, nullable=False)
     costo_unitario:         Mapped[float]      = mapped_column(Float, nullable=False)

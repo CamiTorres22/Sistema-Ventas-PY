@@ -51,6 +51,7 @@ class ClienteUpdate(BaseModel):
 class ProductoOut(BaseModel):
     producto_id:            str
     sede:                   str
+    nombre:                 Optional[str] = None
     categoria_producto:     str
     precio_unitario:        float
     costo_unitario:         float
@@ -110,6 +111,7 @@ class PedidoResumen(BaseModel):
 # RECOMENDACIONES
 class ProductoRecomendado(BaseModel):
     producto_id:        str
+    nombre:             Optional[str] = None
     categoria_producto: str
     precio_unitario:    float
     stock:              int

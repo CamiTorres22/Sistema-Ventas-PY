@@ -116,7 +116,7 @@ export default function InicioPage() {
                   <tr key={p.venta_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 font-medium text-gray-900">{p.cliente_id}</td>
                     <td className="px-4 py-4 text-gray-500">{formatDate(p.fecha_venta)}</td>
-                    <td className="px-4 py-4 text-right font-semibold text-gray-900">{formatCurrency(p.total)}</td>
+                    <td className="px-4 py-4 text-right font-semibold text-gray-900">{formatCurrency(p.monto_total)}</td>
                     <td className="px-6 py-4 text-right">
                       <span
                         className="text-xs px-3 py-1 rounded-full font-medium"

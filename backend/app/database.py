@@ -1,32 +1,29 @@
 """
-database.py — Configuración de SQLAlchemy + PostgreSQL (async via asyncpg)
+database.py — Configuración de SQLAlchemy + SQLite (async)
 
-Usa asyncpg para I/O no bloqueante en FastAPI.
-Conecta a Supabase usando la cadena DATABASE_URL del archivo .env.
+Usa aiosqlite para I/O no bloqueante en FastAPI.
+En producción, reemplazar DATABASE_URL por PostgreSQL o SQL Server.
 """
 
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-load_dotenv()
-
+# ── URL de la BD (desde .env o valor por defecto local) ───────────────────────
+ROOT_DIR     = Path(__file__).resolve().parent.parent.parent
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres",
+    f"sqlite+aiosqlite:///{ROOT_DIR / 'data' / 'db' / 'ico.db'}",
 )
 
-# El pooler de transacciones de Supabase (puerto 6543 / PgBouncer) no soporta
-# prepared statements — se deshabilitan via statement_cache_size=0.
-_pgbouncer = ":6543/" in DATABASE_URL
 engine = create_async_engine(
     DATABASE_URL,
     echo=False,
-    connect_args={"statement_cache_size": 0} if _pgbouncer else {},
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
 )
 
 AsyncSessionLocal = async_sessionmaker(

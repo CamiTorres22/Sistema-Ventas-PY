@@ -151,15 +151,15 @@ export default function CarritoPage() {
     try {
       const pedido = await api.pedidos.create({
         cliente_id: clienteId,
+        fecha_venta: new Date().toISOString().slice(0, 10),
         items: items.map((i) => ({
           producto_id: i.producto.producto_id,
+          sede: i.producto.sede,
           cantidad: i.cantidad,
-          desde_recomendacion: i.desde_recomendacion,
         })),
-        forma_pago: formaPago,
       });
       clearCart();
-      router.push(`/historial/${pedido.id}?nuevo=true`);
+      router.push(`/historial/${pedido.venta_id}?nuevo=true`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al crear pedido");
     } finally {
@@ -241,7 +241,7 @@ export default function CarritoPage() {
                             <div className="flex items-center gap-2">
                               <Package size={13} className="text-gray-300 flex-shrink-0" />
                               <div>
-                                <p className="font-medium text-gray-900 text-sm">{producto.producto_id}</p>
+                                <p className="font-medium text-gray-900 text-sm">{producto.nombre ?? producto.producto_id}</p>
                                 <div className="flex items-center gap-2">
                                   <p className="text-xs text-gray-400">{producto.categoria_producto}</p>
                                   {desde_recomendacion && (
@@ -434,18 +434,15 @@ export default function CarritoPage() {
                       addItem(
                         {
                           producto_id: rec.producto_id,
-                          produto_id: rec.produto_id,
+                          nombre: rec.nombre,
                           categoria_producto: rec.categoria_producto,
                           precio_unitario: rec.precio_unitario,
-                          stock: rec.stock,
-                          descripcion: null,
                           costo_unitario: 0,
+                          stock: rec.stock,
+                          dias_en_stock: 0,
                           sede: "",
                           fecha_ingreso_catalogo: null,
                           fecha_min_caducidad: null,
-                          rotacion_diaria: rec.rotacion_diaria ?? 0,
-                          baja_rotacion: rec.es_baja_rotacion ? 1 : 0,
-                          activo: true,
                         },
                         true
                       );
@@ -484,7 +481,7 @@ function RecCard({
       </div>
       <div className="p-3">
         <p className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-1">
-          {rec.produto_id}
+          {rec.nombre ?? rec.producto_id}
         </p>
         <p className="text-base font-bold mb-0.5" style={{ color: tabCfg.headerBg }}>
           {formatCurrency(rec.precio_unitario)}

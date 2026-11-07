@@ -64,10 +64,10 @@ async def agregar_stock(
     db:     AsyncSession = Depends(get_db),
     _user:  Usuario      = Depends(get_current_user),
 ):
-    prod = (await db.execute(select(Produto).where(
-        Produto.produto_id == produto_id, Produto.sede == sede
+    prod = (await db.execute(select(Producto).where(
+        Producto.produto_id == produto_id, Producto.sede == sede
     ))).scalar_one_or_none()
-    if prod is None: raise HTTPException(404, f"Produto '{produto_id}' nao encontrado.")
+    if prod is None: raise HTTPException(404, f"Producto '{produto_id}' not found.")
     prod.stock += data.incremento
     await db.commit(); await db.refresh(prod)
     return prod

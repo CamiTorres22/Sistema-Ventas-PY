@@ -41,7 +41,7 @@ async def _fetch_predictions(
     sql = text(f"""
         SELECT
             p.cliente_id, p.producto_id,
-            COALESCE(pr.nombre, p.producto_id) AS nombre,
+            COALESCE(pr.nombre, p.producto_id)   AS nombre,
             COALESCE(pr.categoria_producto, '') AS categoria_producto,
             COALESCE(pr.precio_unitario, 0.0)  AS precio_unitario,
             p.stock,
@@ -76,7 +76,7 @@ def _rows_to_recomendados(rows: list[dict]) -> list[ProductoRecomendado]:
     return [
         ProductoRecomendado(
             producto_id=r["producto_id"],
-            nombre=r["nombre"],
+            nombre=r.get("nombre"),
             categoria_producto=r["categoria_producto"],
             precio_unitario=r["precio_unitario"],
             stock=r["stock"],

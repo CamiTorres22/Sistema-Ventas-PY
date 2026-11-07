@@ -7,7 +7,7 @@ Genera los 3 archivos que necesita el pipeline de ML:
   3. indices.json                 — mapeo cliente_id/producto_id ↔ índice entero
 
 FUENTES DE DATOS:
-  --source db   (por defecto) → lee pedidos + detalle_pedido + productos de Supabase PostgreSQL
+  --source db   (por defecto) → lee pedidos + detalle_pedido + productos de ico.db
                                  Solo pedidos con creado_en < hoy y estado != cancelado
   --source csv  → lee data/processed/dataset_ml.csv (comportamiento original)
 
@@ -22,11 +22,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
-import psycopg2
-from dotenv import load_dotenv
-
-load_dotenv()
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -45,6 +41,7 @@ logger = logging.getLogger(__name__)
 # ── Rutas por defecto ──────────────────────────────────────────────────────────
 ROOT_DIR      = Path(__file__).resolve().parent.parent
 DATASET_PATH  = ROOT_DIR / "data" / "processed" / "dataset_ml.csv"
+DB_PATH       = ROOT_DIR / "data" / "db" / "ico.db"
 OUTPUT_DIR    = ROOT_DIR / "data" / "processed"
 
 # ── Parámetros ─────────────────────────────────────────────────────────────────
@@ -57,24 +54,20 @@ RANDOM_SEED   = 42
 # 1. CARGA Y VALIDACIÓN
 # ──────────────────────────────────────────────────────────────────────────────
 
-def load_all_products_from_db(db_path: Path = None) -> pd.DataFrame:
+def load_all_products_from_db(db_path: Path) -> pd.DataFrame:
     """
-    Carga TODOS los productos activos del catalogo desde Supabase (PostgreSQL).
-    Incluye productos nuevos sin historial para que el pipeline los indexe.
+    Carga TODOS los productos activos del catálogo, incluyendo los que
+    nunca han sido comprados (productos nuevos sin historial).
+    Necesario para que el pipeline los incluya en los índices y contexto.
     """
-    direct_url = os.getenv("DIRECT_URL")
-    if not direct_url:
-        raise RuntimeError("DIRECT_URL no esta definido en .env")
-    conn = psycopg2.connect(direct_url)
+    conn = sqlite3.connect(db_path)
     query = """
         SELECT
             producto_id, categoria_producto,
-            precio_unitario, costo_unitario   AS COSTO_UNITARIO,
+            precio_unitario, costo_unitario AS COSTO_UNITARIO,
             stock, dias_en_stock, sede,
-            fecha_ingreso_catalogo, fecha_min_caducidad,
-            rotacion_diaria, baja_rotacion
+            fecha_ingreso_catalogo, fecha_min_caducidad
         FROM productos
-        WHERE activo = TRUE
     """
     df = pd.read_sql_query(
         query, conn,
@@ -82,21 +75,25 @@ def load_all_products_from_db(db_path: Path = None) -> pd.DataFrame:
     )
     conn.close()
 
+    # Campos que se calculan luego; inicializar en 0
+    df["rotacion_diaria"] = 0.0
+    df["baja_rotacion"]   = 0
+
     FECHA_HOY = pd.Timestamp(date.today())
     df["dias_para_vencer"] = (
         pd.to_datetime(df["fecha_min_caducidad"]) - FECHA_HOY
     ).dt.days
 
     logger.info(
-        "Catálogo completo: %d productos activos (incluyendo nuevos sin historial)",
+        "Catálogo completo: %d productos (incluyendo nuevos sin historial)",
         len(df),
     )
     return df
 
 
-def load_from_db(db_path: Path = None) -> pd.DataFrame:
+def load_from_db(db_path: Path) -> pd.DataFrame:
     """
-    Carga el historial de compras directamente desde SQLite (Supabase PostgreSQL).
+    Carga el historial de compras directamente desde SQLite (ico.db).
 
     JOIN: pedidos × detalle_pedido × productos
     Filtros:
@@ -106,17 +103,22 @@ def load_from_db(db_path: Path = None) -> pd.DataFrame:
     Devuelve un DataFrame con las mismas columnas que dataset_ml.csv
     para que el resto del pipeline sea idéntico.
     """
-    direct_url = os.getenv("DIRECT_URL")
-    if not direct_url:
-        raise RuntimeError("DIRECT_URL no esta definido en .env")
-    logger.info("Cargando datos desde Supabase (PostgreSQL) ...")
-    conn = psycopg2.connect(direct_url)
+    if not db_path.exists():
+        raise FileNotFoundError(
+            f"No se encontró la BD en {db_path}. "
+            "Ejecuta seed.py y migrate_historical.py primero."
+        )
+
+    logger.info("Cargando datos desde SQLite: %s ...", db_path)
+
+    conn = sqlite3.connect(db_path)
 
     query = """
         SELECT
-            p.cliente_id,
-            dp.producto_id,
-            p.creado_en                  AS fecha_venta,
+            v.cliente_id,
+            dv.producto_id,
+            v.fecha_venta                AS fecha_venta,
+            dv.cantidad_producto,
             pr.categoria_producto,
             pr.precio_unitario,
             pr.costo_unitario            AS COSTO_UNITARIO,
@@ -124,15 +126,11 @@ def load_from_db(db_path: Path = None) -> pd.DataFrame:
             pr.dias_en_stock,
             pr.sede,
             pr.fecha_ingreso_catalogo,
-            pr.fecha_min_caducidad,
-            pr.rotacion_diaria,
-            pr.baja_rotacion
-        FROM pedidos p
-        JOIN detalle_pedido dp ON dp.pedido_id = p.id
-        JOIN productos pr      ON pr.producto_id = dp.producto_id
-        WHERE p.estado != 'cancelado'
-          AND DATE(p.creado_en) < CURRENT_DATE
-          AND pr.activo = TRUE
+            pr.fecha_min_caducidad
+        FROM ventas v
+        JOIN detalle_venta dv ON dv.venta_id = v.venta_id
+        JOIN productos pr     ON pr.producto_id = dv.producto_id
+        WHERE DATE(v.fecha_venta) < DATE('now')
     """
 
     df = pd.read_sql_query(
@@ -415,10 +413,23 @@ def save_artefacts(
 # MAIN
 # ──────────────────────────────────────────────────────────────────────────────
 
-def main(source: str, dataset_path: Path, out_dir: Path) -> None:
+def main(source: str, dataset_path: Path, db_path: Path, out_dir: Path) -> None:
     if source == "db":
-        df = load_from_db()
-        all_products_df = load_all_products_from_db()
+        df = load_from_db(db_path)
+        # Cargar todos los productos del catálogo (incluyendo nuevos sin historial)
+        all_products_df = load_all_products_from_db(db_path)
+        # Calcular rotacion_diaria real desde el historial de ventas
+        rot = (
+            df.groupby("producto_id")["cantidad_producto"].sum()
+            / df.groupby("producto_id")["dias_en_stock"].first().clip(lower=1)
+        ).rename("rotacion_diaria").reset_index()
+        all_products_df = all_products_df.merge(rot, on="producto_id", how="left", suffixes=("_old", ""))
+        if "rotacion_diaria_old" in all_products_df.columns:
+            all_products_df.drop(columns=["rotacion_diaria_old"], inplace=True)
+        all_products_df["rotacion_diaria"] = all_products_df["rotacion_diaria"].fillna(0.0)
+        # baja_rotacion: 1 si está por debajo del percentil 25
+        p25 = all_products_df["rotacion_diaria"].quantile(0.25)
+        all_products_df["baja_rotacion"] = (all_products_df["rotacion_diaria"] <= p25).astype(int)
     else:
         df = load_dataset(dataset_path)
         all_products_df = None  # modo CSV: solo productos con historial
@@ -439,18 +450,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ETL NCF — ICO Distribuidora")
     parser.add_argument(
         "--source", choices=["db", "csv"], default="db",
-        help="Fuente de datos: 'db' = Supabase PostgreSQL (recomendado) | 'csv' = dataset_ml.csv",
+        help="Fuente de datos: 'db' = SQLite ico.db (recomendado) | 'csv' = dataset_ml.csv",
     )
     parser.add_argument(
         "--dataset", type=Path, default=DATASET_PATH,
         help="Ruta al dataset_ml.csv (solo si --source csv).",
     )
     parser.add_argument(
-        help="Ruta a Supabase PostgreSQL (solo si --source db).",
+        "--db", type=Path, default=DB_PATH,
+        help="Ruta a ico.db (solo si --source db).",
     )
     parser.add_argument(
         "--out", type=Path, default=OUTPUT_DIR,
         help="Directorio de salida para los artefactos.",
     )
     args = parser.parse_args()
-    main(args.source, args.dataset, args.out)
+    main(args.source, args.dataset, args.db, args.out)

@@ -139,15 +139,12 @@ function FormProducto({
   const esEditar = !!inicial;
   const [form, setForm] = useState({
     producto_id: inicial?.producto_id ?? "",
-    // nombre removed,
     categoria_producto: inicial?.categoria_producto ?? "Lácteos",
     precio_unitario: inicial?.precio_unitario?.toString() ?? "",
     costo_unitario: inicial?.costo_unitario?.toString() ?? "",
     stock: inicial?.stock?.toString() ?? "0",
     sede: inicial?.sede ?? "Lima",
     fecha_min_caducidad: inicial?.fecha_min_caducidad ?? "",
-    descripcion: inicial?.descripcion ?? "",
-    activo: inicial?.activo ?? true,
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -168,25 +165,20 @@ function FormProducto({
       let result: Producto;
       if (esEditar) {
         result = await api.productos.update(form.producto_id, {
-          // nombre removed
           categoria_producto: form.categoria_producto,
           precio_unitario: Number(form.precio_unitario),
           costo_unitario: Number(form.costo_unitario),
           fecha_min_caducidad: form.fecha_min_caducidad || undefined,
-          descripcion: form.descripcion || undefined,
-          activo: form.activo,
         });
       } else {
         result = await api.productos.create({
           producto_id: form.producto_id,
-          // nombre removed
           categoria_producto: form.categoria_producto,
           precio_unitario: Number(form.precio_unitario),
           costo_unitario: Number(form.costo_unitario),
           stock: Number(form.stock),
           sede: form.sede,
           fecha_min_caducidad: form.fecha_min_caducidad || undefined,
-          descripcion: form.descripcion || undefined,
         });
       }
       onSaved(result);
@@ -221,11 +213,6 @@ function FormProducto({
           <h3 className="font-semibold text-gray-900 mb-2">Información del Producto</h3>
 
           <div>
-            <label className={labelClass}>Nombre del Producto *</label>
-            <input className={inputClass} value={form.nombre} onChange={(e) => set("nombre", e.target.value)} placeholder="Ej: Leche Evaporada Gloria 390g" required />
-          </div>
-
-          <div>
             <label className={labelClass}>Código / SKU *</label>
             <input className={inputClass} value={form.producto_id} onChange={(e) => set("producto_id", e.target.value)} placeholder="Ej: LAC-001" required disabled={esEditar} />
           </div>
@@ -254,39 +241,18 @@ function FormProducto({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4 items-end">
-            <div>
-              <label className={labelClass}>Categoría *</label>
-              <select className={inputClass + " bg-white"} value={form.categoria_producto} onChange={(e) => set("categoria_producto", e.target.value)}>
-                {CATEGORIAS.filter((c) => c !== "Todas").map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={labelClass}>Estado *</label>
-              <div className="flex gap-2">
-                <button type="button" onClick={() => set("activo", true)}
-                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${form.activo ? "text-white" : "border border-gray-200 text-gray-500"}`}
-                  style={form.activo ? { backgroundColor: "#2f9e44" } : {}}>
-                  Activo
-                </button>
-                <button type="button" onClick={() => set("activo", false)}
-                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${!form.activo ? "bg-gray-200 text-gray-700" : "border border-gray-200 text-gray-500"}`}>
-                  Inactivo
-                </button>
-              </div>
-            </div>
+          <div>
+            <label className={labelClass}>Categoría *</label>
+            <select className={inputClass + " bg-white"} value={form.categoria_producto} onChange={(e) => set("categoria_producto", e.target.value)}>
+              {CATEGORIAS.filter((c) => c !== "Todas").map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
           </div>
 
           <div>
             <label className={labelClass}>Fecha de Vencimiento</label>
             <input type="date" className={inputClass} value={form.fecha_min_caducidad} onChange={(e) => set("fecha_min_caducidad", e.target.value)} />
-          </div>
-
-          <div>
-            <label className={labelClass}>Descripción del Producto</label>
-            <textarea rows={3} className={inputClass + " resize-none"} value={form.descripcion} onChange={(e) => set("descripcion", e.target.value)} placeholder="Descripción del producto..." />
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}
@@ -298,17 +264,6 @@ function FormProducto({
             <button type="submit" disabled={saving} className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ backgroundColor: "#3B5BDB" }}>
               {saving ? "Guardando..." : esEditar ? "Guardar Cambios" : "Agregar Producto"}
             </button>
-            {esEditar && (
-              <button type="button" onClick={async () => {
-                if (!confirm("¿Desactivar este producto?")) return;
-                try {
-                  const r = await api.productos.update(form.producto_id, { activo: false });
-                  onSaved(r); onBack();
-                } catch {}
-              }} className="ml-auto px-5 py-2.5 border border-red-300 rounded-lg text-sm font-semibold text-red-500 hover:bg-red-50">
-                Eliminar Producto
-              </button>
-            )}
           </div>
         </form>
 
@@ -321,7 +276,6 @@ function FormProducto({
                 <Package size={40} className="text-gray-300" />
               </div>
             </div>
-            <p className="font-semibold text-gray-900 text-sm text-center mb-0.5">{form.nombre || "Nombre del producto"}</p>
             <p className="text-xs text-gray-400 text-center">
               {form.producto_id || "SKU"} · {form.categoria_producto} · {form.precio_unitario ? `S/ ${Number(form.precio_unitario).toFixed(2)}` : "S/ 0.00"}
             </p>
@@ -448,7 +402,6 @@ export default function AdminProductosPage() {
                 <th className="text-right px-4 py-3 font-medium text-gray-500">Precio</th>
                 <th className="text-right px-4 py-3 font-medium text-gray-500">Stock</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Vencimiento</th>
-                <th className="text-center px-4 py-3 font-medium text-gray-500">Estado</th>
                 <th className="text-center px-4 py-3 font-medium text-gray-500">Acciones</th>
               </tr>
             </thead>
@@ -456,7 +409,6 @@ export default function AdminProductosPage() {
               {filtered.map((p) => {
                 const sinStock = p.stock <= 0;
                 const stockBajo = p.stock > 0 && p.stock < 10;
-                const esBajaRot = p.baja_rotacion === 1;
                 const diasVence = p.fecha_min_caducidad
                   ? Math.ceil((new Date(p.fecha_min_caducidad).getTime() - Date.now()) / 86400000)
                   : null;
@@ -465,18 +417,11 @@ export default function AdminProductosPage() {
                 return (
                   <tr key={p.producto_id} className="hover:bg-gray-50">
                     <td className="px-5 py-3">
-                      <p className="font-medium text-gray-900 line-clamp-1">{p.producto_id}</p>
-                      <div className="flex gap-1 mt-0.5 flex-wrap">
-                        {proxVencer && (
-                          <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-red-100 text-red-600">PROX. VENCER</span>
-                        )}
-                        {esBajaRot && (
-                          <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-orange-100 text-orange-600">BAJA ROT.</span>
-                        )}
-                        {!esBajaRot && !proxVencer && p.rotacion_diaria === 0 && (
-                          <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-blue-100 text-blue-600">NUEVO</span>
-                        )}
-                      </div>
+                      <p className="font-medium text-gray-900 line-clamp-1">{p.nombre ?? p.producto_id}</p>
+                      <p className="text-xs text-gray-400">{p.producto_id}</p>
+                      {proxVencer && (
+                        <span className="text-xs px-1.5 py-0.5 rounded font-medium bg-red-100 text-red-600">PROX. VENCER</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{p.categoria_producto}</td>
                     <td className="px-4 py-3 text-right font-medium text-gray-900">
@@ -487,11 +432,6 @@ export default function AdminProductosPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">
                       {p.fecha_min_caducidad ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.activo ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                        {p.activo ? "Activo" : "Inactivo"}
-                      </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-2">

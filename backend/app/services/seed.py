@@ -19,7 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.database import AsyncSessionLocal, init_db
-from backend.app.models import Cliente, ClienteVendedor, Producto, Usuario
+from backend.app.models import Cliente, ClienteVendedor, Producto, Usuario, Venta, DetalleVenta
 from backend.app.routers.auth import hash_password
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(levelname)-8s  %(message)s")
@@ -35,6 +35,7 @@ async def seed_usuarios(db: AsyncSession) -> dict[str, int]:
     usuarios = [
         {"nombre": "Maria Andrade",  "email": "admin@ico.com",    "password": "admin123",   "rol": "admin",     "zona": None},
         {"nombre": "Juan Ramirez",   "email": "juan@ico.com",     "password": "vend123",    "rol": "vendedor",  "zona": "Lima"},
+        {"nombre": "Minato Perez",   "email": "minato@ico.com",   "password": "vend123",    "rol": "vendedor",  "zona": "Lima"},
         {"nombre": "Sofia Paredes",  "email": "sofia@ico.com",    "password": "vend123",    "rol": "vendedor",  "zona": "Arequipa"},
         {"nombre": "Carlos Ruiz",    "email": "carlos@ico.com",   "password": "vend123",    "rol": "vendedor",  "zona": "Piura"},
         {"nombre": "Ana Flores",     "email": "ana@ico.com",      "password": "vend123",    "rol": "vendedor",  "zona": "Cusco"},
@@ -72,14 +73,10 @@ async def seed_clientes(db: AsyncSession) -> None:
         return
 
     df = pd.read_csv(path, dtype=str)
-    # Generar nombre de negocio a partir de rubro (placeholder si no existe columna nombre)
-    if "nombre" not in df.columns:
-        df["nombre"] = df["cliente_id"]
 
     for _, row in df.iterrows():
         cliente = Cliente(
             cliente_id=str(row["cliente_id"]),
-            nombre=str(row.get("nombre", row["cliente_id"])),
             rubro_cliente=str(row.get("rubro_cliente", "")),
             subrubro_1=str(row.get("subrubro_1", "")) or None,
             subrubro_2=str(row.get("subrubro_2", "")) or None,
@@ -105,12 +102,6 @@ async def seed_productos(db: AsyncSession) -> None:
         df = pd.read_csv(
             ds_path,
             parse_dates=["fecha_ingreso_catalogo", "fecha_min_caducidad"],
-            usecols=[
-                "producto_id", "categoria_producto", "precio_unitario", "COSTO_UNITARIO",
-                "stock", "dias_en_stock", "sede",
-                "fecha_ingreso_catalogo", "fecha_min_caducidad",
-                "rotacion_diaria", "baja_rotacion",
-            ],
         )
         df = df.sort_values("stock", ascending=False).drop_duplicates("producto_id", keep="first")
         source = "dataset_ml.csv"
@@ -121,9 +112,8 @@ async def seed_productos(db: AsyncSession) -> None:
         )
         # Un producto por id (mayor stock entre sedes)
         df = df.sort_values("stock", ascending=False).drop_duplicates("producto_id", keep="first")
-        df["COSTO_UNITARIO"] = df.get("COSTO_UNITARIO", df["precio_unitario"] * 0.6)
-        df["rotacion_diaria"] = 0.0
-        df["baja_rotacion"]   = 0
+        if "COSTO_UNITARIO" not in df.columns:
+            df["COSTO_UNITARIO"] = df["precio_unitario"] * 0.6
         source = "productos.csv"
     else:
         logger.warning("  No se encontro dataset_ml.csv ni productos.csv.")
@@ -132,23 +122,20 @@ async def seed_productos(db: AsyncSession) -> None:
     for _, row in df.iterrows():
         prod = Producto(
             producto_id=str(row["producto_id"]),
-            nombre=str(row["producto_id"]),
             categoria_producto=str(row["categoria_producto"]),
             precio_unitario=float(row["precio_unitario"]),
-            costo_unitario=float(row["COSTO_UNITARIO"]),
+            costo_unitario=float(row.get("COSTO_UNITARIO", row.get("costo_unitario", row["precio_unitario"] * 0.6))),
             stock=int(row["stock"]),
-            dias_en_stock=int(row["dias_en_stock"]),
+            dias_en_stock=int(row.get("dias_en_stock", 0)),
             sede=str(row["sede"]),
             fecha_ingreso_catalogo=(
                 row["fecha_ingreso_catalogo"].strftime("%Y-%m-%d")
                 if pd.notna(row["fecha_ingreso_catalogo"]) else None
-            ),
+            ) if "fecha_ingreso_catalogo" in row and pd.notna(row.get("fecha_ingreso_catalogo")) else None,
             fecha_min_caducidad=(
                 row["fecha_min_caducidad"].strftime("%Y-%m-%d")
                 if pd.notna(row["fecha_min_caducidad"]) else None
-            ),
-            rotacion_diaria=float(row["rotacion_diaria"]),
-            baja_rotacion=int(row["baja_rotacion"]),
+            ) if "fecha_min_caducidad" in row and pd.notna(row.get("fecha_min_caducidad")) else None,
         )
         db.add(prod)
 
@@ -157,24 +144,88 @@ async def seed_productos(db: AsyncSession) -> None:
 
 
 async def seed_asignaciones(db: AsyncSession, user_ids: dict[str, int]) -> None:
-    """Asigna clientes a vendedores de forma distribuida (demo)."""
+    """Asigna cada cliente al vendedor cuya zona coincide con la sede del cliente."""
     count = (await db.execute(select(ClienteVendedor))).scalars().first()
     if count:
         logger.info("  Asignaciones ya cargadas, saltando.")
         return
 
     clientes = (await db.execute(select(Cliente))).scalars().all()
-    vendedores = [v for k, v in user_ids.items() if k != "admin@ico.com"]
 
-    if not vendedores or not clientes:
+    # Construir mapa zona → lista de vendedor_ids (una zona puede tener varios vendedores)
+    vendedores_db = (
+        await db.execute(select(Usuario).where(Usuario.rol == "vendedor"))
+    ).scalars().all()
+    zona_a_vendedores: dict[str, list[int]] = {}
+    for v in vendedores_db:
+        if v.zona:
+            zona_a_vendedores.setdefault(v.zona, []).append(v.id)
+
+    if not zona_a_vendedores or not clientes:
         return
 
+    # Fallback: todos los vendedores en orden para clientes sin zona coincidente
+    fallback = [vid for ids in zona_a_vendedores.values() for vid in ids]
+
+    # Contador por zona para repartir en round-robin entre vendedores de la misma zona
+    zona_counter: dict[str, int] = {zona: 0 for zona in zona_a_vendedores}
+
+    sin_zona = 0
     for i, cliente in enumerate(clientes):
-        vendedor_id = vendedores[i % len(vendedores)]
+        sede = cliente.sede_cliente
+        if sede in zona_a_vendedores:
+            ids_zona = zona_a_vendedores[sede]
+            vendedor_id = ids_zona[zona_counter[sede] % len(ids_zona)]
+            zona_counter[sede] += 1
+        else:
+            vendedor_id = fallback[i % len(fallback)]
+            sin_zona += 1
         db.add(ClienteVendedor(cliente_id=cliente.cliente_id, vendedor_id=vendedor_id))
 
     await db.commit()
-    logger.info("  Asignaciones creadas: %d", len(clientes))
+    logger.info("  Asignaciones creadas: %d (sin zona coincidente: %d)", len(clientes), sin_zona)
+
+
+async def seed_ventas(db: AsyncSession) -> None:
+    """Importa historial de ventas desde dataset_ml.csv si la tabla está vacía."""
+    count = (await db.execute(select(Venta))).scalars().first()
+    if count:
+        logger.info("  Ventas ya cargadas, saltando.")
+        return
+
+    path = PROC_DIR / "dataset_ml.csv"
+    if not path.exists():
+        logger.warning("  dataset_ml.csv no encontrado en %s", PROC_DIR)
+        return
+
+    df = pd.read_csv(path, dtype={"venta_id": str, "cliente_id": str, "producto_id": str})
+    df["fecha_venta"] = pd.to_datetime(df["fecha_venta"]).dt.strftime("%Y-%m-%d")
+
+    # Ventas únicas
+    ventas_df = (
+        df[["venta_id", "cliente_id", "fecha_venta", "monto_total"]]
+        .drop_duplicates("venta_id")
+    )
+    for _, row in ventas_df.iterrows():
+        db.add(Venta(
+            venta_id=row["venta_id"],
+            cliente_id=row["cliente_id"],
+            fecha_venta=row["fecha_venta"],
+            monto_total=float(row["monto_total"]),
+        ))
+    await db.flush()
+
+    # Detalles
+    for _, row in df.iterrows():
+        db.add(DetalleVenta(
+            venta_id=row["venta_id"],
+            producto_id=row["producto_id"],
+            cantidad_producto=int(row["cantidad_producto"]),
+            subtotal=float(row["subtotal"]),
+        ))
+
+    await db.commit()
+    logger.info("  Ventas importadas: %d | Detalles: %d", len(ventas_df), len(df))
 
 
 async def main() -> None:
@@ -193,6 +244,9 @@ async def main() -> None:
 
         logger.info("Asignando clientes a vendedores ...")
         await seed_asignaciones(db, user_ids)
+
+        logger.info("Importando historial de ventas ...")
+        await seed_ventas(db)
 
     logger.info("══ Seed completado ══")
     logger.info("")

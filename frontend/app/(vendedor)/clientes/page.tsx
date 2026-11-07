@@ -62,7 +62,7 @@ export default function ClientesPage() {
     const map: Record<string, PedidoResumen> = {};
     for (const p of pedidos) {
       const prev = map[p.cliente_id];
-      if (!prev || p.fecha_venta > prev.creado_en) map[p.cliente_id] = p;
+      if (!prev || p.fecha_venta > prev.fecha_venta) map[p.cliente_id] = p;
     }
     return map;
   }, [pedidos]);
@@ -182,10 +182,10 @@ export default function ClientesPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-500">
-                        {ultimo ? formatDate(ultimo.creado_en) : "—"}
+                        {ultimo ? formatDate(ultimo.fecha_venta) : "—"}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                        {ultimo ? formatCurrency(ultimo.total) : "—"}
+                        {ultimo ? formatCurrency(ultimo.monto_total) : "—"}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-2">

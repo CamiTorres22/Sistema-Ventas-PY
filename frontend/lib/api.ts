@@ -108,19 +108,18 @@ export const api = {
   pedidos: {
     create: (data: {
       cliente_id: string;
-      items: { producto_id: string; cantidad: number; desde_recomendacion: boolean }[];
-      forma_pago?: string;
-      notas?: string;
-    }) => request<import("./types").Pedido>("/pedidos", { method: "POST", body: JSON.stringify(data) }),
+      fecha_venta: string;
+      items: { producto_id: string; sede: string; cantidad: number }[];
+    }) => request<import("./types").Pedido>("/ventas", { method: "POST", body: JSON.stringify(data) }),
 
-    list: (params?: { estado?: string; limit?: number; cliente_id?: string }) => {
+    list: (params?: { limit?: number; cliente_id?: string; skip?: number }) => {
       const q = new URLSearchParams();
-      if (params?.estado)     q.set("estado",     params.estado);
       if (params?.limit)      q.set("limit",      String(params.limit));
       if (params?.cliente_id) q.set("cliente_id", params.cliente_id);
-      return request<import("./types").PedidoResumen[]>(`/pedidos?${q}`);
+      if (params?.skip)       q.set("skip",       String(params.skip));
+      return request<import("./types").PedidoResumen[]>(`/ventas?${q}`);
     },
-    get: (id: number) => request<import("./types").Pedido>(`/pedidos/${id}`),
+    get: (id: string) => request<import("./types").Pedido>(`/ventas/${id}`),
   },
 
   // ── Vendedores ───────────────────────────────────────────────────────────────

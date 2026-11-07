@@ -42,8 +42,8 @@ function exportCSV(pedidos: PedidoResumen[]) {
     p.venta_id,
     `"${p.cliente_id}"`,
     formatDate(p.fecha_venta),
-    `${p.n_produtos} productos`,
-    p.total.toFixed(2),
+    `${p.n_productos} productos`,
+    p.monto_total.toFixed(2),
     ESTADO_CONFIG["entregado"]?.label ?? "entregado",
   ]);
   const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
@@ -195,9 +195,9 @@ function HistorialContent() {
                       </td>
                       <td className="px-4 py-3 text-gray-700">{p.cliente_id}</td>
                       <td className="px-4 py-3 text-gray-500">{formatDate(p.fecha_venta)}</td>
-                      <td className="px-4 py-3 text-gray-500">{p.n_produtos} productos</td>
+                      <td className="px-4 py-3 text-gray-500">{p.n_productos} productos</td>
                       <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                        {formatCurrency(p.total)}
+                        {formatCurrency(p.monto_total)}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span

@@ -21,14 +21,6 @@ function formatDateLong(s: string) {
   });
 }
 
-function formatDateShort(s: string) {
-  return new Date(s).toLocaleDateString("es-PE", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
-
 function addBusinessDays(date: Date, days: number): Date {
   const d = new Date(date);
   let added = 0;
@@ -39,15 +31,6 @@ function addBusinessDays(date: Date, days: number): Date {
   }
   return d;
 }
-
-const ESTADO_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  pendiente:   { bg: "#FFF3BF", text: "#E67700", label: "Pendiente" },
-  confirmado:  { bg: "#DBE4FF", text: "#3B5BDB", label: "En proceso" },
-  en_proceso:  { bg: "#DBE4FF", text: "#3B5BDB", label: "En proceso" },
-  entregado:   { bg: "#D3F9D8", text: "#2F9E44", label: "Completado" },
-  completado:  { bg: "#D3F9D8", text: "#2F9E44", label: "Completado" },
-  cancelado:   { bg: "#FFE3E3", text: "#C92A2A", label: "Cancelado" },
-};
 
 function DetallePedidoContent() {
   const { id } = useParams<{ id: string }>();
@@ -61,7 +44,7 @@ function DetallePedidoContent() {
 
   useEffect(() => {
     api.pedidos
-      .get(Number(id))
+      .get(id)
       .then(setPedido)
       .catch(() => router.push("/historial"))
       .finally(() => setLoading(false));
@@ -70,11 +53,7 @@ function DetallePedidoContent() {
   if (loading) return <div className="p-6 text-gray-400">Cargando pedido...</div>;
   if (!pedido) return null;
 
-  const estado = ESTADO_CONFIG[pedido.estado] ?? { bg: "#F1F3F5", text: "#495057", label: pedido.estado };
-  const fechaEntrega = addBusinessDays(new Date(pedido.creado_en), 3);
-  const subtotal = pedido.subtotal;
-  const impuesto = pedido.impuesto;
-  const descuento = pedido.descuento ?? 0;
+  const fechaEntrega = addBusinessDays(new Date(pedido.fecha_venta), 3);
 
   return (
     <div className="p-6 max-w-5xl">
@@ -86,7 +65,7 @@ function DetallePedidoContent() {
           </div>
           <div>
             <p className="font-semibold text-green-800 text-sm">
-              Pedido {pedido.numero} registrado exitosamente
+              Pedido {pedido.venta_id} registrado exitosamente
             </p>
             <p className="text-green-600 text-xs mt-0.5">
               El pedido fue confirmado y notificado al equipo de despacho.
@@ -101,26 +80,25 @@ function DetallePedidoContent() {
         style={{ backgroundColor: "#3B5BDB" }}
       >
         <div>
-          <h1 className="text-xl font-bold text-white">Pedido #{pedido.numero}</h1>
+          <h1 className="text-xl font-bold text-white">Pedido #{pedido.venta_id}</h1>
           <p className="text-sm mt-0.5" style={{ color: "#A5B4FC" }}>
             {pedido.cliente_id}
           </p>
         </div>
         <span
           className="text-xs px-4 py-1.5 rounded-full font-semibold"
-          style={{ backgroundColor: estado.bg, color: estado.text }}
+          style={{ backgroundColor: "#D3F9D8", color: "#2F9E44" }}
         >
-          ✓ {estado.label}
+          ✓ Completado
         </span>
       </div>
 
       {/* Info row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-200 rounded-xl overflow-hidden mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-gray-200 rounded-xl overflow-hidden mb-5">
         {[
-          { label: "N° de Pedido",    value: pedido.numero },
-          { label: "Fecha del Pedido", value: formatDateLong(pedido.creado_en) },
-          { label: "Fecha de Entrega", value: formatDateShort(fechaEntrega.toISOString()) },
-          { label: "Forma de Pago",   value: pedido.forma_pago ?? "Contado" },
+          { label: "N° de Pedido",    value: pedido.venta_id },
+          { label: "Fecha del Pedido", value: formatDateLong(pedido.fecha_venta) },
+          { label: "Entrega estimada", value: fechaEntrega.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" }) },
         ].map(({ label, value }) => (
           <div key={label} className="bg-white px-5 py-4">
             <p className="text-xs text-gray-400 mb-1">{label}</p>
@@ -141,7 +119,6 @@ function DetallePedidoContent() {
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left px-5 py-3 font-medium text-gray-400">Producto</th>
                 <th className="text-center px-3 py-3 font-medium text-gray-400">Cant.</th>
-                <th className="text-right px-3 py-3 font-medium text-gray-400">P. Unit.</th>
                 <th className="text-right px-5 py-3 font-medium text-gray-400">Subtotal</th>
               </tr>
             </thead>
@@ -151,17 +128,11 @@ function DetallePedidoContent() {
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">
                       <Package size={15} className="text-gray-300 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium text-gray-900">{d.produto_id}</p>
-                        <p className="text-xs text-gray-400">{d.categoria_producto}</p>
-                      </div>
+                      <p className="font-medium text-gray-900">{d.producto_id}</p>
                     </div>
                   </td>
                   <td className="px-3 py-3 text-center font-semibold" style={{ color: "#3B5BDB" }}>
-                    x{d.quantidade_produto}
-                  </td>
-                  <td className="px-3 py-3 text-right text-gray-500">
-                    {formatCurrency(d.precio_unit)}
+                    x{d.cantidad_producto}
                   </td>
                   <td className="px-5 py-3 text-right font-semibold text-gray-900">
                     {formatCurrency(d.subtotal)}
@@ -178,32 +149,19 @@ function DetallePedidoContent() {
 
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-500">
-              <span>Subtotal ({pedido.detalles.length} productos)</span>
-              <span>{formatCurrency(subtotal)}</span>
-            </div>
-            <div className="flex justify-between text-gray-500">
-              <span>Impuesto (12%)</span>
-              <span>{formatCurrency(impuesto)}</span>
-            </div>
-            <div className="flex justify-between text-gray-500">
-              <span>Descuento cliente</span>
-              <span>-{formatCurrency(descuento)}</span>
+              <span>{pedido.detalles.length} productos</span>
             </div>
             <div className="border-t border-gray-100 pt-2 flex justify-between font-bold text-base">
               <span className="text-gray-900">TOTAL</span>
-              <span style={{ color: "#3B5BDB" }}>{formatCurrency(pedido.total)}</span>
+              <span style={{ color: "#3B5BDB" }}>{formatCurrency(pedido.monto_total)}</span>
             </div>
           </div>
 
           <div className="border-t border-gray-100 pt-3 space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-400">Forma de Pago</span>
-              <span className="font-medium text-gray-900 text-right">{pedido.forma_pago ?? "Contado"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Fecha de Entrega</span>
+              <span className="text-gray-400">Entrega estimada</span>
               <span className="font-medium text-gray-900 text-right">
-                {formatDateShort(fechaEntrega.toISOString())}
+                {fechaEntrega.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" })}
               </span>
             </div>
             {nombre && (
@@ -216,26 +174,12 @@ function DetallePedidoContent() {
 
           <div className="border-t border-gray-100 pt-3">
             <p className="text-sm font-semibold text-gray-900 mb-3">Estado del Pedido</p>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0" />
-                <span className="text-gray-700 flex-1">Pedido registrado</span>
-                <span className="text-xs text-gray-400">
-                  {new Date(pedido.creado_en).toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit" })}
-                </span>
-              </div>
-              {(pedido.estado === "confirmado" || pedido.estado === "entregado") && (
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0" />
-                  <span className="text-gray-700 flex-1">En preparación</span>
-                </div>
-              )}
-              {pedido.estado === "entregado" && (
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0" />
-                  <span className="text-gray-700 flex-1">Entregado</span>
-                </div>
-              )}
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0" />
+              <span className="text-gray-700 flex-1">Pedido registrado</span>
+              <span className="text-xs text-gray-400">
+                {new Date(pedido.fecha_venta).toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit" })}
+              </span>
             </div>
           </div>
         </div>

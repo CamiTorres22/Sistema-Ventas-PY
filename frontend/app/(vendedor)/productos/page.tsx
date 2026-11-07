@@ -42,12 +42,13 @@ export default function ProductosPage() {
   }, []);
 
   const filtered = productos.filter((p) => {
-    const matchQ = buscar
-      ? p.producto_id.toLowerCase().includes(buscar.toLowerCase()) ||
-        p.producto_id.toLowerCase().includes(buscar.toLowerCase())
-      : true;
+    const q = buscar.toLowerCase();
+    const matchQ = !q ||
+      p.producto_id.toLowerCase().includes(q) ||
+      (p.nombre ?? "").toLowerCase().includes(q) ||
+      p.categoria_producto.toLowerCase().includes(q);
     const matchCat = categoria === "Todas" || p.categoria_producto === categoria;
-    return matchQ && matchCat && p.activo;
+    return matchQ && matchCat;
   });
 
   function handleAdd(p: Producto, cantidad: number) {
@@ -149,9 +150,9 @@ function ProductCard({
             href={`/productos/${producto.producto_id}`}
             className="font-semibold text-gray-900 text-sm mt-2 line-clamp-2 hover:text-blue-600 transition-colors"
           >
-            {producto.producto_id}
+            {producto.nombre ?? producto.producto_id}
           </Link>
-          <p className="text-xs text-gray-400 mt-0.5">{producto.categoria_producto}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{producto.categoria_producto} · {producto.sede}</p>
         </div>
 
         <div className="mt-auto">

@@ -47,25 +47,22 @@ export interface Cliente {
 
 export interface Producto {
   producto_id: string;
-  nombre: string;
+  sede: string;
+  nombre: string | null;
   categoria_producto: string;
-  descripcion: string | null;
   precio_unitario: number;
   costo_unitario: number;
   stock: number;
-  sede: string;
+  dias_en_stock: number;
   fecha_ingreso_catalogo: string | null;
   fecha_min_caducidad: string | null;
-  rotacion_diaria: number;
-  baja_rotacion: number;
-  activo: boolean;
 }
 
 // ── Recomendaciones ───────────────────────────────────────────────────────────
 
 export interface ProductoRecomendado {
   producto_id: string;
-  nombre: string;
+  nombre: string | null;
   categoria_producto: string;
   precio_unitario: number;
   stock: number;
@@ -103,12 +100,8 @@ export interface ItemCarrito {
 
 export interface DetallePedido {
   producto_id: string;
-  nombre: string;
-  categoria_producto: string;
-  cantidad: number;
-  precio_unit: number;
+  cantidad_producto: number;
   subtotal: number;
-  desde_recomendacion: boolean;
 }
 
 export interface Pedido {
@@ -120,14 +113,11 @@ export interface Pedido {
 }
 
 export interface PedidoResumen {
-  id: number;
-  numero: string;
+  venta_id: string;
   cliente_id: string;
-  nombre_cliente: string;
-  estado: string;
-  total: number;
+  fecha_venta: string;
+  monto_total: number;
   n_productos: number;
-  creado_en: string;
 }
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
